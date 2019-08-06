@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.csi.sbs.deposit.business.dao.SandboxSearchDao" >
+  <resultMap id="BaseResultMap" type="com.csi.sbs.deposit.business.entity.SandboxSearchEntity" >
+    <result column="Tablename" property="tablename" jdbcType="VARCHAR" />
+    <result column="SandBoxId" property="sandboxid" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="findMany" resultType="Map" parameterType="java.lang.String" statementType="STATEMENT">
+    select * from ${tablename} where SandBoxId = '${sandboxid}'
+  </select>
+  
+  <!-- 删除沙盘数据 -->
+  <select id="delSandBoxData" parameterType="java.lang.String" statementType="CALLABLE">
+     {
+        call delSandBoxData(#{sandboxid,mode=IN})
+     }
+  </select>
+  
+ </mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.csi.sbs.deposit.business.dao.FexAccountDetailDao" >
+  <resultMap id="BaseResultMap" type="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="AccountNumber" property="accountnumber" jdbcType="VARCHAR" />
+    <result column="CurrencyCode" property="currencycode" jdbcType="VARCHAR" />
+    <result column="Balance" property="balance" jdbcType="DECIMAL" />
+    <result column="LastUpdatedDate" property="lastupdateddate" jdbcType="DECIMAL" />
+    <result column="CreateDate" property="createdate" jdbcType="DECIMAL" />
+  </resultMap>
+  
+    <select id="findOne" resultType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" parameterType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+    select * from t_fexaccount_detail
+    where 1=1
+    <if test="accountnumber != null and accountnumber !=''" >
+       and AccountNumber = #{accountnumber}
+    </if>
+    <if test="currencycode != null and currencycode !=''" >
+       and CurrencyCode = #{currencycode}
+    </if>
+    <if test="id != null and id !=''" >
+       and ID = #{id}
+    </if>
+   </select>
+   
+   <select id="findMany" resultType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" parameterType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+      select * from t_fexaccount_detail
+      where 1=1
+      <if test="accountnumber != null and accountnumber !=''" >
+       and AccountNumber = #{accountnumber}
+      </if>
+    </select>
+ 
+    <select id="findBalanceBigZero" resultType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" parameterType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+      select * from t_fexaccount_detail
+      where Balance > 0
+      <if test="accountnumber != null and accountnumber !=''" >
+       and AccountNumber = #{accountnumber}
+      </if>
+    </select>
+  
+  <delete id="delete" parameterType="java.lang.String" >
+    delete from t_fexaccount_detail
+    where ID = #{id,jdbcType=VARCHAR}
+  </delete>
+  
+  <insert id="insert" parameterType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+    insert into t_fexaccount_detail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="accountnumber != null" >
+        AccountNumber,
+      </if>
+      <if test="currencycode != null" >
+        CurrencyCode,
+      </if>
+      <if test="balance != null" >
+        Balance,
+      </if>
+      <if test="lastupdateddate != null" >
+        LastUpdatedDate,
+      </if>
+      <if test="createdate != null" >
+        CreateDate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="accountnumber != null" >
+        #{accountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="currencycode != null" >
+        #{currencycode,jdbcType=VARCHAR},
+      </if>
+      <if test="balance != null" >
+        #{balance,jdbcType=DECIMAL},
+      </if>
+      <if test="lastupdateddate != null" >
+        #{lastupdateddate,jdbcType=DECIMAL},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  
+  <update id="update" parameterType="com.csi.sbs.deposit.business.entity.FexAccountDetailEntity" >
+    update t_fexaccount_detail
+    <set >
+      <if test="accountnumber != null" >
+        AccountNumber = #{accountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="currencycode != null" >
+        CurrencyCode = #{currencycode,jdbcType=VARCHAR},
+      </if>
+      <if test="balance != null" >
+        Balance = #{balance,jdbcType=VARCHAR},
+      </if>
+      <if test="lastupdateddate != null" >
+        LastUpdatedDate = #{lastupdateddate,jdbcType=DECIMAL},
+      </if>
+      <if test="createdate != null" >
+        CreateDate = #{createdate,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

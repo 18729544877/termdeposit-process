@@ -1,4 +1,4 @@
-package com.simnectzbank.lbs.processlayer.termdepositprocess;
+package com.simnectzbank.lbs.processlayer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

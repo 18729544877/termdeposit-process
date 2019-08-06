@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.csi.sbs.deposit.business.dao.TermDepositDetailDao" >
+  <resultMap id="BaseResultMap" type="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+    <id column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="AccountNumber" property="accountnumber" jdbcType="VARCHAR" />
+    <result column="SandBoxId" property="sandboxid" jdbcType="VARCHAR" />
+    <result column="DockerId" property="dockerid" jdbcType="VARCHAR" />
+    <result column="DepositNumber" property="depositnumber" jdbcType="VARCHAR" />
+    <result column="DepositAmount" property="depositamount" jdbcType="DECIMAL" />
+    <result column="TermPeriod" property="termperiod" jdbcType="VARCHAR" />
+    <result column="TermInterestRate" property="terminterestrate" jdbcType="DECIMAL" />
+    <result column="MaturityDate" property="maturitydate" jdbcType="DECIMAL" />
+    <result column="MaturityInterest" property="maturityinterest" jdbcType="DECIMAL" />
+    <result column="MaturityAmount" property="maturityamount" jdbcType="DECIMAL" />
+    <result column="MaturityStatus" property="maturitystatus" jdbcType="VARCHAR" />
+    <result column="CreateDate" property="createdate" jdbcType="DECIMAL" />
+    <result column="LastUpdatedDate" property="lastupdateddate" jdbcType="DECIMAL" />
+    <result column="SystemDate" property="systemdate" jdbcType="DECIMAL" />
+  </resultMap>
+  
+  <select id="findOne" resultType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" parameterType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+    select * from t_termdeposit_detail
+    where 1=1
+    <if test="accountnumber != null and accountnumber != ''">
+    	and AccountNumber = #{accountnumber}
+    </if>
+    <if test="depositnumber != null and depositnumber != ''">
+    	and DepositNumber = #{depositnumber}
+    </if>
+  </select>
+  
+  <select id="findMany" resultMap="BaseResultMap" parameterType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+    select * from t_termdeposit_detail
+    where 1=1
+    <if test="sandboxid != null and sandboxid != ''">
+    	and SandBoxId = #{sandboxid}
+    </if>
+    <if test="dockerid != null and dockerid != ''">
+    	and DockerId = #{dockerid}
+    </if>
+    <if test="accountnumber != null and accountnumber != ''">
+    	and AccountNumber = #{accountnumber}
+    </if>
+    order by CreateDate desc
+  </select>
+  
+  <delete id="delete" parameterType="java.lang.String" >
+    delete from t_termdeposit_detail
+    where ID = #{id,jdbcType=VARCHAR}
+  </delete>
+  
+  <insert id="insert" parameterType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+    insert into t_termdeposit_detail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="accountnumber != null" >
+        AccountNumber,
+      </if>
+      <if test="sandboxid != null" >
+        SandBoxId,
+      </if>
+      <if test="dockerid != null" >
+        DockerId,
+      </if>
+      <if test="depositnumber != null" >
+        DepositNumber,
+      </if>
+      <if test="depositamount != null" >
+        DepositAmount,
+      </if>
+      <if test="termperiod != null" >
+        TermPeriod,
+      </if>
+      <if test="terminterestrate != null" >
+        TermInterestRate,
+      </if>
+      <if test="maturitydate != null" >
+        MaturityDate,
+      </if>
+      <if test="maturityinterest != null" >
+        MaturityInterest,
+      </if>
+      <if test="maturityamount != null" >
+        MaturityAmount,
+      </if>
+      <if test="maturitystatus != null" >
+        MaturityStatus,
+      </if>
+      <if test="createdate != null" >
+        CreateDate,
+      </if>
+      <if test="lastupdateddate != null" >
+        LastUpdatedDate,
+      </if>
+      <if test="systemdate != null" >
+        SystemDate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="accountnumber != null" >
+        #{accountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="sandboxid != null" >
+        #{sandboxid,jdbcType=VARCHAR},
+      </if>
+      <if test="dockerid != null" >
+        #{dockerid,jdbcType=VARCHAR},
+      </if>
+      <if test="depositnumber != null" >
+        #{depositnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="depositamount != null" >
+        #{depositamount,jdbcType=DECIMAL},
+      </if>
+      <if test="termperiod != null" >
+        #{termperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="terminterestrate != null" >
+        #{terminterestrate,jdbcType=DECIMAL},
+      </if>
+      <if test="maturitydate != null" >
+        #{maturitydate,jdbcType=DECIMAL},
+      </if>
+      <if test="maturityinterest != null" >
+        #{maturityinterest,jdbcType=DECIMAL},
+      </if>
+      <if test="maturityamount != null" >
+        #{maturityamount,jdbcType=DECIMAL},
+      </if>
+      <if test="maturitystatus != null" >
+        #{maturitystatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=DECIMAL},
+      </if>
+      <if test="lastupdateddate != null" >
+        #{lastupdateddate,jdbcType=DECIMAL},
+      </if>
+      <if test="systemdate != null" >
+        #{systemdate,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+  
+  <update id="update" parameterType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+    update t_termdeposit_detail
+    <set >
+      <if test="accountnumber != null" >
+        AccountNumber = #{accountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="sandboxid != null" >
+        SandBoxId = #{sandboxid,jdbcType=VARCHAR},
+      </if>
+      <if test="dockerid != null" >
+        DockerId = #{dockerid,jdbcType=VARCHAR},
+      </if>
+      <if test="depositnumber != null" >
+        DepositNumber = #{depositnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="depositamount != null" >
+        DepositAmount = #{depositamount,jdbcType=DECIMAL},
+      </if>
+      <if test="termperiod != null" >
+        TermPeriod = #{termperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="terminterestrate != null" >
+        TermInterestRate = #{terminterestrate,jdbcType=DECIMAL},
+      </if>
+      <if test="maturitydate != null" >
+        MaturityDate = #{maturitydate,jdbcType=DECIMAL},
+      </if>
+      <if test="maturityinterest != null" >
+        MaturityInterest = #{maturityinterest,jdbcType=DECIMAL},
+      </if>
+      <if test="maturityamount != null" >
+        MaturityAmount = #{maturityamount,jdbcType=DECIMAL},
+      </if>
+      <if test="maturitystatus != null" >
+        MaturityStatus = #{maturitystatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        CreateDate = #{createdate,jdbcType=DECIMAL},
+      </if>
+      <if test="lastupdateddate != null" >
+        LastUpdatedDate = #{lastupdateddate,jdbcType=DECIMAL},
+      </if>
+      <if test="systemdate != null" >
+        SystemDate = #{systemdate,jdbcType=DECIMAL},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  
+ 
+    <update id="updateInterest" parameterType="com.csi.sbs.deposit.business.entity.TermDepositDetailEntity" >
+       update t_termdeposit_detail
+       <set >
+        <if test="maturityinterest != null" >
+         MaturityInterest = #{maturityinterest,jdbcType=DECIMAL},
+       </if>
+       <if test="maturityamount != null" >
+         MaturityAmount = #{maturityamount,jdbcType=DECIMAL},
+       </if>
+       <if test="maturitystatus != null" >
+         MaturityStatus = #{maturitystatus,jdbcType=VARCHAR},
+       </if>
+       <if test="lastupdateddate != null" >
+        LastUpdatedDate = #{lastupdateddate,jdbcType=DECIMAL},
+       </if>
+    </set>
+    where ID = #{id,jdbcType=VARCHAR}
+  </update> 
+  
+</mapper>

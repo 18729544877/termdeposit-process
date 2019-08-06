@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.csi.sbs.deposit.business.dao.TermDepositRateDao" >
+  <resultMap id="BaseResultMap" type="com.csi.sbs.deposit.business.entity.TermDepositRateEntity" >
+    <id column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="DepositRange" property="depositrange" jdbcType="VARCHAR" />
+    <result column="TDPeriod" property="tdperiod" jdbcType="VARCHAR" />
+    <result column="TDInterestRate" property="tdinterestrate" jdbcType="DECIMAL" />
+  </resultMap>
+ 
+
+  <select id="findMany" resultMap="BaseResultMap" parameterType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity">
+    select *  from t_termdeposit_rate    
+    where 1=1
+    <if test="depositrange != null and depositrange !=''" >
+       and DepositRange = #{depositrange}
+    </if>
+    <if test="tdperiod != null and tdperiod !=''" >
+       and TDPeriod = #{tdperiod}
+    </if>
+    <if test="id != null and id !=''" >
+       and ID = #{id}
+    </if>
+  </select>
+  
+  <select id="queryAllTDPeriod" resultMap="BaseResultMap" parameterType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity">
+    select *  from t_termdeposit_rate    
+    where 1=1 GROUP BY TDPeriod order by ID asc
+  </select> 
+  
+  <select id="findOne"  resultType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity" parameterType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity" >
+    select *  from t_termdeposit_rate    
+    where 1=1
+    <if test="depositrange != null and depositrange !=''" >
+       and DepositRange = #{depositrange}
+    </if>
+    <if test="tdperiod != null and tdperiod !=''" >
+       and TDPeriod = #{tdperiod}
+    </if>
+    <if test="id != null and id !=''" >
+       and ID = #{id}
+    </if>
+  </select> 
+  
+  <delete id="delete" parameterType="java.lang.String"  >
+    delete from t_termdeposit_rate
+    where ID = #{id,jdbcType=VARCHAR}
+  </delete>
+  
+  <insert id="insert" parameterType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity" >
+    insert into t_termdeposit_rate
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="depositrange != null" >
+        DepositRange,
+      </if>
+      <if test="tdperiod != null" >
+        TDPeriod,
+      </if>
+      <if test="tdinterestrate != null" >
+        TDInterestRate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="depositrange != null" >
+        #{depositrange,jdbcType=VARCHAR},
+      </if>
+      <if test="tdperiod != null" >
+        #{tdperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="tdinterestrate != null" >
+        #{tdinterestrate,jdbcType=DECIMAL},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="update" parameterType="com.csi.sbs.deposit.business.entity.TermDepositRateEntity">
+		update t_termdeposit_rate
+		<set>
+			<if test="depositrange != null">
+				DepositRange = #{depositrange,jdbcType=VARCHAR},
+			</if>
+			<if test="tdperiod != null">
+				TDPeriod = #{tdperiod,jdbcType=VARCHAR},
+			</if>
+			<if test="tdinterestrate != null">
+				TDInterestRate = #{tdinterestrate,jdbcType=DECIMAL},
+			</if>
+		</set>
+		where ID = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

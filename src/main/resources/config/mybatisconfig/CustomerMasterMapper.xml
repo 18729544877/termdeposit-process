@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.csi.sbs.deposit.business.dao.CustomerMasterDao">
+	<resultMap id="BaseResultMap"
+		type="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="CountryCode" property="countrycode" jdbcType="VARCHAR" />
+		<result column="ClearingCode" property="clearingcode" jdbcType="VARCHAR" />
+		<result column="BranchCode" property="branchcode" jdbcType="VARCHAR" />
+		<result column="CustomerNumber" property="customernumber"
+			jdbcType="VARCHAR" />
+		<result column="MobilePhoneNumber" property="mobilephonenumber"
+			jdbcType="VARCHAR" />
+		<result column="CustomerID" property="customerid" jdbcType="VARCHAR" />
+		<result column="Pwd" property="pwd" jdbcType="VARCHAR" />
+		<result column="IssueCountry" property="issuecountry" jdbcType="VARCHAR" />
+		<result column="DateOfBirth" property="dateofbirth" jdbcType="DECIMAL" />
+		<result column="ChineseName" property="chinesename" jdbcType="VARCHAR" />
+		<result column="Gender" property="gender" jdbcType="VARCHAR" />
+		<result column="Nationality" property="nationality" jdbcType="VARCHAR" />
+		<result column="PermanentResidenceStatus" property="permanentresidencestatus"
+			jdbcType="VARCHAR" />
+		<result column="MaritalStatus" property="maritalstatus"
+			jdbcType="VARCHAR" />
+		<result column="Education" property="education" jdbcType="VARCHAR" />
+		<result column="ResidentialAddress" property="residentialaddress"
+			jdbcType="VARCHAR" />
+		<result column="MailingAddress" property="mailingaddress"
+			jdbcType="VARCHAR" />
+		<result column="ResidencePhoneNumber" property="residencephonenumber"
+			jdbcType="VARCHAR" />
+		<result column="WeChatID" property="wechatid" jdbcType="VARCHAR" />
+		<result column="Accommodation" property="accommodation"
+			jdbcType="VARCHAR" />
+		<result column="YearsOfResidence" property="yearsofresidence"
+			jdbcType="DECIMAL" />
+		<result column="Occupation" property="occupation" jdbcType="VARCHAR" />
+		<result column="EmployerCompanyName" property="employercompanyname"
+			jdbcType="VARCHAR" />
+		<result column="Position" property="position" jdbcType="VARCHAR" />
+		<result column="CompanyAddress" property="companyaddress"
+			jdbcType="VARCHAR" />
+		<result column="CompanyPhoneNumber" property="companyphonenumber"
+			jdbcType="VARCHAR" />
+		<result column="YearsOfServices" property="yearsofservices"
+			jdbcType="DECIMAL" />
+		<result column="MonthlySalary" property="monthlysalary"
+			jdbcType="DECIMAL" />
+		<result column="EmailAddress" property="emailaddress" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="SandBoxId" property="sandboxid" jdbcType="VARCHAR" />
+		<result column="DockerId" property="dockerid" jdbcType="VARCHAR" />
+		<result column="CreateDate" property="createdate" jdbcType="DECIMAL" />
+		<result column="LastUpdatedDate" property="lastupdateddate"
+			jdbcType="DECIMAL" />
+	</resultMap>
+
+
+	<resultMap id="AllAccountsResultMap1"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap2"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap3"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap4"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap5"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap6"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap7"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="AllAccountsResultMap8"
+		type="com.csi.sbs.deposit.business.entity.AllAccountEntity">
+		<id column="CustomerNumber" property="customerNumber" jdbcType="VARCHAR" />
+		<result column="FirstName" property="firstname" jdbcType="VARCHAR" />
+		<result column="LastName" property="lastname" jdbcType="VARCHAR" />
+		<result column="AccountNumber" property="accountNumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+
+	<resultMap id="findOneAccountResultMap2"
+		type="com.csi.sbs.deposit.business.clientmodel.QueryAccountModel">
+		<result column="AccountNumber" property="accountnumber"
+			jdbcType="VARCHAR" />
+		<result column="AccountStatus" property="accountstatus"
+			jdbcType="VARCHAR" />
+		<result column="relaccountnumber" property="relaccountnumber"
+			jdbcType="VARCHAR" />
+		<result column="LastUpdateDate" property="lastupdateddate"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="findOneAccountResultMap1"
+		type="com.csi.sbs.deposit.business.clientmodel.FindOneAccountModel">
+		<result column="amount" property="ledgerbalance" jdbcType="DECIMAL" />
+		<result column="CurrencyCode" property="currencycode" jdbcType="VARCHAR" />
+		<result column="Balance" property="balance" jdbcType="DECIMAL" />
+	</resultMap>
+	
+	<resultMap id="findOneAccountResultMap3"
+		type="com.csi.sbs.deposit.business.clientmodel.FexAmountModel">
+		<result column="amount" property="amount" jdbcType="DECIMAL" />
+	</resultMap>
+
+	<select id="queryAll" resultMap="BaseResultMap"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		select * from t_customer_master
+		where 1=1
+	</select>
+
+	<!-- 获取客户所有账号 -->
+	<select id="callfindAllAccount"
+		resultMap="AllAccountsResultMap1,AllAccountsResultMap2,AllAccountsResultMap3,AllAccountsResultMap4,AllAccountsResultMap5,AllAccountsResultMap6,AllAccountsResultMap7,AllAccountsResultMap8"
+		parameterType="com.csi.sbs.deposit.business.entity.AllAccountEntity"
+		statementType="CALLABLE">
+		{
+		call findAllAccount(#{customerNumber,mode=IN})
+		}
+	</select>
+
+	<!-- 账号-沙盘数据日期做旧处理 -->
+	<select id="accountOldDateHandle"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity"
+		statementType="CALLABLE">
+		{
+		call accountOldDateHandle(#{sandboxid,mode=IN})
+		}
+	</select>
+
+	<!-- 账号-沙盘数据日期做旧处理 -->
+	<select id="tdDetailOldDate"
+		parameterType="com.csi.sbs.deposit.business.entity.AllAccountEntity"
+		statementType="CALLABLE">
+		{
+		call tdDetailOldDate()
+		}
+	</select>
+
+	<!-- 查询所有账号信息 -->
+	<select id="accountNumberExists"
+		resultType="com.csi.sbs.deposit.business.entity.AccountStatusEntity"
+		parameterType="java.lang.String" statementType="CALLABLE">
+		{
+		call
+		accountNumberExists(#{AccountNumber,mode=IN})
+		}
+	</select>
+
+	<!-- 获取saving 或者 current 账号的所有关联账号 -->
+	<select id="validateAssociatedAccounts"
+		resultType="com.csi.sbs.deposit.business.entity.AccountNumberEntity"
+		parameterType="java.lang.String" statementType="CALLABLE">
+		{
+		call
+		validateAssociatedAccounts(#{AccountNumber,mode=IN})
+		}
+	</select>
+
+	<!-- 查找某一个account -->
+	<select id="findOneAccount" resultMap="findOneAccountResultMap1,findOneAccountResultMap2,findOneAccountResultMap3"
+		parameterType="java.lang.String" statementType="CALLABLE">
+		{
+		call
+		findOneAccount(#{AccountNumber,mode=IN})
+		}
+	</select>
+
+	<select id="findOne"
+		resultType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		select * from t_customer_master
+		where 1=1
+		<!-- 拼接数据隔离公共配置 -->
+		<include refid="com.csi.sbs.deposit.business.base.BaseDao.dataIsolationSql" />
+		<if test="customerid != null and customerid!=''">
+			and CustomerID = #{customerid}
+		</if>
+		<if test="customernumber != null and customernumber !=''">
+			and CustomerNumber = #{customernumber}
+		</if>
+		<if test="birth != null">
+			and DateOfBirth = #{birth}
+		</if>
+		<if test="issuecountry != null">
+			and IssueCountry = #{issuecountry}
+		</if>
+		<if test="mailingaddress != null">
+			and MailingAddress = #{mailingaddress}
+		</if>
+		<if test="mobilephonenumber != null">
+			and MobilePhoneNumber = #{mobilephonenumber}
+		</if>
+		<if test="chinesename != null">
+			and ChineseName = #{chinesename}
+		</if>
+		<if test="id != null">
+			and ID = #{id}
+		</if>
+		<if test="emailaddress != null">
+			and EmailAddress = #{emailaddress}
+		</if>
+		<if test="firstname != null">
+			and FirstName = #{firstname}
+		</if>
+		<if test="lastname != null">
+			and LastName = #{lastname}
+		</if>
+	</select>
+
+	<select id="findCustomerByCustomerID"
+		resultType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		select * from t_customer_master
+		where 1=1
+		<if test="customerid != null and customerid!=''">
+			and CustomerID = #{customerid}
+		</if>
+		<if test="customernumber != null and customernumber!=''">
+			and CustomerNumber = #{customernumber}
+		</if>
+	</select>
+
+	<delete id="delete" parameterType="java.lang.String">
+		delete from t_customer_master
+		where ID = #{id,jdbcType=VARCHAR}
+	</delete>
+
+	<insert id="insert" keyProperty="id"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		insert into t_customer_master
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="countrycode != null">
+				CountryCode,
+			</if>
+			<if test="clearingcode != null">
+				ClearingCode,
+			</if>
+			<if test="branchcode != null">
+				BranchCode,
+			</if>
+			<if test="customernumber != null">
+				CustomerNumber,
+			</if>
+			<if test="mobilephonenumber != null">
+				MobilePhoneNumber,
+			</if>
+			<if test="customerid != null">
+				CustomerID,
+			</if>
+			<if test="issuecountry != null">
+				IssueCountry,
+			</if>
+			<if test="dateofbirth != null">
+				DateOfBirth,
+			</if>
+			<if test="chinesename != null">
+				ChineseName,
+			</if>
+			<if test="gender != null">
+				Gender,
+			</if>
+			<if test="nationality != null">
+				Nationality,
+			</if>
+			<if test="permanentresidencestatus != null">
+				PermanentResidenceStatus,
+			</if>
+			<if test="maritalstatus != null">
+				MaritalStatus,
+			</if>
+			<if test="education != null">
+				Education,
+			</if>
+			<if test="residentialaddress != null">
+				ResidentialAddress,
+			</if>
+			<if test="mailingaddress != null">
+				MailingAddress,
+			</if>
+			<if test="residencephonenumber != null">
+				ResidencePhoneNumber,
+			</if>
+			<if test="wechatid != null">
+				WeChatID,
+			</if>
+			<if test="accommodation != null">
+				Accommodation,
+			</if>
+			<if test="yearsofresidence != null">
+				YearsOfResidence,
+			</if>
+			<if test="occupation != null">
+				Occupation,
+			</if>
+			<if test="employercompanyname != null">
+				EmployerCompanyName,
+			</if>
+			<if test="position != null">
+				Position,
+			</if>
+			<if test="companyaddress != null">
+				CompanyAddress,
+			</if>
+			<if test="companyphonenumber != null">
+				CompanyPhoneNumber,
+			</if>
+			<if test="yearsofservices != null">
+				YearsOfServices,
+			</if>
+			<if test="monthlysalary != null">
+				MonthlySalary,
+			</if>
+			<if test="emailaddress != null">
+				EmailAddress,
+			</if>
+			<if test="firstname != null">
+				FirstName,
+			</if>
+			<if test="lastname != null">
+				LastName,
+			</if>
+			<if test="sandboxid != null">
+				SandBoxId,
+			</if>
+			<if test="dockerid != null">
+				DockerId,
+			</if>
+			<if test="createdate != null">
+				CreateDate,
+			</if>
+			<if test="lastupdateddate != null">
+				LastUpdatedDate,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="countrycode != null">
+				#{countrycode,jdbcType=VARCHAR},
+			</if>
+			<if test="clearingcode != null">
+				#{clearingcode,jdbcType=VARCHAR},
+			</if>
+			<if test="branchcode != null">
+				#{branchcode,jdbcType=VARCHAR},
+			</if>
+			<if test="customernumber != null">
+				#{customernumber,jdbcType=VARCHAR},
+			</if>
+			<if test="mobilephonenumber != null">
+				#{mobilephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="customerid != null">
+				#{customerid,jdbcType=VARCHAR},
+			</if>
+			<if test="issuecountry != null">
+				#{issuecountry,jdbcType=VARCHAR},
+			</if>
+			<if test="dateofbirth != null">
+				#{dateofbirth,jdbcType=DECIMAL},
+			</if>
+			<if test="chinesename != null">
+				#{chinesename,jdbcType=VARCHAR},
+			</if>
+			<if test="gender != null">
+				#{gender,jdbcType=VARCHAR},
+			</if>
+			<if test="nationality != null">
+				#{nationality,jdbcType=VARCHAR},
+			</if>
+			<if test="permanentresidencestatus != null">
+				#{permanentresidencestatus,jdbcType=VARCHAR},
+			</if>
+			<if test="maritalstatus != null">
+				#{maritalstatus,jdbcType=VARCHAR},
+			</if>
+			<if test="education != null">
+				#{education,jdbcType=VARCHAR},
+			</if>
+			<if test="residentialaddress != null">
+				#{residentialaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="mailingaddress != null">
+				#{mailingaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="residencephonenumber != null">
+				#{residencephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="wechatid != null">
+				#{wechatid,jdbcType=VARCHAR},
+			</if>
+			<if test="accommodation != null">
+				#{accommodation,jdbcType=VARCHAR},
+			</if>
+			<if test="yearsofresidence != null">
+				#{yearsofresidence,jdbcType=DECIMAL},
+			</if>
+			<if test="occupation != null">
+				#{occupation,jdbcType=VARCHAR},
+			</if>
+			<if test="employercompanyname != null">
+				#{employercompanyname,jdbcType=VARCHAR},
+			</if>
+			<if test="position != null">
+				#{position,jdbcType=VARCHAR},
+			</if>
+			<if test="companyaddress != null">
+				#{companyaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="companyphonenumber != null">
+				#{companyphonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="yearsofservices != null">
+				#{yearsofservices,jdbcType=DECIMAL},
+			</if>
+			<if test="monthlysalary != null">
+				#{monthlysalary,jdbcType=DECIMAL},
+			</if>
+			<if test="emailaddress != null">
+				#{emailaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="firstname != null">
+				#{firstname,jdbcType=VARCHAR},
+			</if>
+			<if test="lastname != null">
+				#{lastname,jdbcType=VARCHAR},
+			</if>
+			<if test="sandboxid != null">
+				#{sandboxid,jdbcType=VARCHAR},
+			</if>
+			<if test="dockerid != null">
+				#{dockerid,jdbcType=VARCHAR},
+			</if>
+			<if test="createdate != null">
+				#{createdate,jdbcType=DECIMAL},
+			</if>
+			<if test="lastupdateddate != null">
+				#{lastupdateddate,jdbcType=DECIMAL},
+			</if>
+		</trim>
+	</insert>
+
+	<update id="update"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		update t_customer_master
+		<set>
+			<if test="countrycode != null">
+				CountryCode = #{countrycode,jdbcType=VARCHAR},
+			</if>
+			<if test="clearingcode != null">
+				ClearingCode = #{clearingcode,jdbcType=VARCHAR},
+			</if>
+			<if test="branchcode != null">
+				BranchCode = #{branchcode,jdbcType=VARCHAR},
+			</if>
+			<if test="customernumber != null">
+				CustomerNumber = #{customernumber,jdbcType=VARCHAR},
+			</if>
+			<if test="mobilephonenumber != null">
+				MobilePhoneNumber =
+				#{mobilephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="customerid != null">
+				CustomerID = #{customerid,jdbcType=VARCHAR},
+			</if>
+			<if test="issuecountry != null">
+				IssueCountry = #{issuecountry,jdbcType=VARCHAR},
+			</if>
+			<if test="dateofbirth != null">
+				DateOfBirth = #{dateofbirth,jdbcType=DECIMAL},
+			</if>
+			<if test="chinesename != null">
+				ChineseName = #{chinesename,jdbcType=VARCHAR},
+			</if>
+			<if test="gender != null">
+				Gender = #{gender,jdbcType=VARCHAR},
+			</if>
+			<if test="nationality != null">
+				Nationality = #{nationality,jdbcType=VARCHAR},
+			</if>
+			<if test="permanentresidencestatus != null">
+				PermanentResidenceStatus =
+				#{permanentresidencestatus,jdbcType=VARCHAR},
+			</if>
+			<if test="maritalstatus != null">
+				MaritalStatus = #{maritalstatus,jdbcType=VARCHAR},
+			</if>
+			<if test="education != null">
+				Education = #{education,jdbcType=VARCHAR},
+			</if>
+			<if test="residentialaddress != null">
+				ResidentialAddress =
+				#{residentialaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="mailingaddress != null">
+				MailingAddress = #{mailingaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="residencephonenumber != null">
+				ResidencePhoneNumber =
+				#{residencephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="wechatid != null">
+				WeChatID = #{wechatid,jdbcType=VARCHAR},
+			</if>
+			<if test="accommodation != null">
+				Accommodation = #{accommodation,jdbcType=VARCHAR},
+			</if>
+			<if test="yearsofresidence != null">
+				YearsOfResidence = #{yearsofresidence,jdbcType=DECIMAL},
+			</if>
+			<if test="occupation != null">
+				Occupation = #{occupation,jdbcType=VARCHAR},
+			</if>
+			<if test="employercompanyname != null">
+				EmployerCompanyName =
+				#{employercompanyname,jdbcType=VARCHAR},
+			</if>
+			<if test="position != null">
+				Position = #{position,jdbcType=VARCHAR},
+			</if>
+			<if test="companyaddress != null">
+				CompanyAddress = #{companyaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="companyphonenumber != null">
+				CompanyPhoneNumber =
+				#{companyphonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="yearsofservices != null">
+				YearsOfServices = #{yearsofservices,jdbcType=DECIMAL},
+			</if>
+			<if test="monthlysalary != null">
+				MonthlySalary = #{monthlysalary,jdbcType=DECIMAL},
+			</if>
+			<if test="emailaddress != null">
+				EmailAddress = #{emailaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="firstname != null">
+				FirstName = #{firstname,jdbcType=VARCHAR},
+			</if>
+			<if test="lastname != null">
+				LastName = #{lastname,jdbcType=VARCHAR},
+			</if>
+			<if test="sandboxid != null">
+				SandBoxId = #{sandboxid,jdbcType=VARCHAR},
+			</if>
+			<if test="dockerid != null">
+				DockerId = #{dockerid,jdbcType=VARCHAR},
+			</if>
+			<if test="createdate != null">
+				CreateDate = #{createdate,jdbcType=DECIMAL},
+			</if>
+			<if test="lastupdateddate != null">
+				LastUpdatedDate = #{lastupdateddate,jdbcType=DECIMAL},
+			</if>
+		</set>
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+
+
+	<update id="contactInformationUpdate"
+		parameterType="com.csi.sbs.deposit.business.entity.CustomerMasterEntity">
+		update t_customer_master
+		<set>
+			<if test="mobilephonenumber != null">
+				MobilePhoneNumber =
+				#{mobilephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="mailingaddress != null">
+				MailingAddress = #{mailingaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="residentialaddress != null">
+				ResidentialAddress =
+				#{residentialaddress,jdbcType=VARCHAR},
+			</if>
+			<if test="residencephonenumber != null">
+				ResidencePhoneNumber =
+				#{residencephonenumber,jdbcType=VARCHAR},
+			</if>
+			<if test="lastupdateddate != null">
+				LastUpdatedDate = #{lastupdateddate,jdbcType=DECIMAL},
+			</if>
+			<if test="emailaddress != null">
+				EmailAddress = #{emailaddress,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where CustomerID = #{customerid,jdbcType=VARCHAR}
+	</update>
+
+</mapper>
