@@ -1,27 +1,46 @@
 package com.simnectzbank.lbs.processlayer.termdeposit.service.impl;
 
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.codingapi.tx.annotation.TxTransaction;
+import com.csi.sbs.common.business.json.JsonProcess;
 import com.csi.sbs.common.business.model.HeaderModel;
+import com.csi.sbs.common.business.model.accountservice.CurrentAccountMasterModel;
 import com.csi.sbs.common.business.util.DataIsolationUtil;
+import com.csi.sbs.common.business.util.PostUtil;
+import com.csi.sbs.common.business.util.ResultUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.config.PathConfig;
+import com.simnectzbank.lbs.processlayer.termdeposit.constant.ExceptionConstant;
+import com.simnectzbank.lbs.processlayer.termdeposit.constant.SysConstant;
+import com.simnectzbank.lbs.processlayer.termdeposit.exception.NotFoundException;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailPreModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositEnquiryModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositMasterModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositForMasterModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TermDepositEnquiryService;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.LogUtil;
 
 
 @Service("TermDepositEnquiryService")
 public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService{
 	
-	
+	@Resource
+	PathConfig pathConfig;
 	
 	@SuppressWarnings("unused")
 	private SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
@@ -37,28 +56,46 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 	public ResultUtil termDepositEnquiry(HeaderModel header,TermDepositEnquiryModel tdem,RestTemplate restTemplate) throws Exception {
 		ResultUtil result = new ResultUtil();
 		
-		TermDepositMasterEntity tdrequest = new TermDepositMasterEntity();
+		TermDepositForMasterModel tdrequest = new TermDepositForMasterModel();
 		tdrequest.setAccountnumber(tdem.getAccountnumber());
 		tdrequest.setCustomernumber(header.getCustomerNumber());
 		//调用数据隔离工具类
-		tdrequest = (TermDepositMasterEntity) DataIsolationUtil.condition(header, tdrequest);
-		TermDepositMasterEntity tdInfo = (TermDepositMasterEntity) termDepositMasterDao.findOne(tdrequest);
+		tdrequest = (TermDepositForMasterModel) DataIsolationUtil.condition(header, tdrequest);
+		//TermDepositForMasterModel tdInfo = (TermDepositForMasterModel) termDepositMasterDao.findOne(tdrequest);
+		ResponseEntity<ResultUtil> postForEntity = restTemplate.postForEntity(pathConfig.getTermdeposit_master_findone(),
+				PostUtil.getRequestEntity(JSON.toJSONString(tdrequest)), ResultUtil.class);
+
+		TermDepositForMasterModel tdInfo = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity.getBody().getData()), TermDepositForMasterModel.class);
+		
 		if (tdInfo == null) {
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404006),ExceptionConstant.ERROR_CODE404006);
 		}	
 		
-		TermDepositDetailEntity tde = new TermDepositDetailEntity();
+		TermDepositDetailModel tde = new TermDepositDetailModel();
 		tde.setAccountnumber(tdem.getAccountnumber());
 		tde.setDepositnumber(tdem.getTdnumber());
 		
-		TermDepositDetailEntity reterm = (TermDepositDetailEntity) termDepositDetailDao.findOne(tde);
+		//TermDepositDetailModel reterm = (TermDepositDetailModel) termDepositDetailDao.findOne(tde);
+		ResponseEntity<ResultUtil> postForEntity2 = restTemplate.postForEntity(pathConfig.getTermdeposit_detail_findOne(),
+				PostUtil.getRequestEntity(JSON.toJSONString(tde)), ResultUtil.class);
+
+		TermDepositDetailPreModel reterm = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity2.getBody().getData()), TermDepositDetailPreModel.class);
+		
 		if(reterm==null){
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404001),ExceptionConstant.ERROR_CODE404001);
 		}
 		//根据定存账号查询currencyCode
-		TermDepositMasterEntity searchCurrencyCode = new TermDepositMasterEntity();
+		TermDepositForMasterModel searchCurrencyCode = new TermDepositForMasterModel();
 		searchCurrencyCode.setAccountnumber(reterm.getAccountnumber());
-		TermDepositMasterEntity res_searchCurrencyCode = (TermDepositMasterEntity) termDepositMasterDao.findOne(searchCurrencyCode);
+		//TermDepositForMasterModel res_searchCurrencyCode = (TermDepositForMasterModel) termDepositMasterDao.findOne(searchCurrencyCode);
+		ResponseEntity<ResultUtil> postForEntity1 = restTemplate.postForEntity(pathConfig.getTermdeposit_master_findone(),
+				PostUtil.getRequestEntity(JSON.toJSONString(searchCurrencyCode)), ResultUtil.class);
+
+		TermDepositForMasterModel res_searchCurrencyCode = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity1.getBody().getData()), TermDepositForMasterModel.class);
+		
 		//model change
 		TermDepositDetailModel tddetail = new TermDepositDetailModel();
 		tddetail.setAccountnumber(reterm.getAccountnumber());
@@ -97,14 +134,26 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 	public ResultUtil termDepositAllEnquiry(HeaderModel header,String customerNumber, RestTemplate restTemplate) throws Exception {
 		List allTermDepositDetail = new ArrayList();
 		ResultUtil result = new ResultUtil();
-		TermDepositMasterEntity searchTDM = new TermDepositMasterEntity();
+		TermDepositForMasterModel searchTDM = new TermDepositForMasterModel();
 		searchTDM.setCustomernumber(customerNumber);
-		List<TermDepositMasterEntity> res_searchTDM = termDepositMasterDao.findMany(searchTDM);
-		TermDepositDetailEntity searchTDD = new TermDepositDetailEntity();
+		//List<TermDepositForMasterModel> res_searchTDM = termDepositMasterDao.findMany(searchTDM);
+		ResponseEntity<ResultUtil> postForEntity1 = restTemplate.postForEntity(pathConfig.getTermdeposit_master_findMany(),
+				PostUtil.getRequestEntity(JSON.toJSONString(searchTDM)), ResultUtil.class);
+
+		List<TermDepositForMasterModel> res_searchTDM = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity1.getBody().getData()), List.class);
+		
+		TermDepositDetailModel searchTDD = new TermDepositDetailModel();
 		if(res_searchTDM!=null && res_searchTDM.size()>0){
 			for(int i=0;i<res_searchTDM.size();i++){
 				searchTDD.setAccountnumber(res_searchTDM.get(i).getAccountnumber());
-				List<TermDepositDetailEntity> res_searchTDD = termDepositDetailDao.findMany(searchTDD);
+				//List<TermDepositDetailModel> res_searchTDD = termDepositDetailDao.findMany(searchTDD);
+				ResponseEntity<ResultUtil> postForEntity3 = restTemplate.postForEntity(pathConfig.getTermdeposit_detail_findMany(),
+						PostUtil.getRequestEntity(JSON.toJSONString(searchTDD)), ResultUtil.class);
+
+				List<TermDepositDetailModel> res_searchTDD = JSONObject.parseObject(
+						JsonProcess.changeEntityTOJSON(postForEntity3.getBody().getData()), List.class);
+				
 				List<TermDepositDetailModel> temp = new ArrayList();
 				for(int j=0;j<res_searchTDD.size();j++){
 					//model change
@@ -150,13 +199,25 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 			throws Exception {
 		ResultUtil result = new ResultUtil();
 		//根据accountNumber查询定存主表
-		TermDepositMasterEntity searchTDM = new TermDepositMasterEntity();
+		TermDepositForMasterModel searchTDM = new TermDepositForMasterModel();
 		searchTDM.setAccountnumber(accountNumber);
-		TermDepositMasterEntity res_searchTDM = (TermDepositMasterEntity) termDepositMasterDao.findOne(searchTDM);
+		//TermDepositForMasterModel res_searchTDM = (TermDepositForMasterModel) termDepositMasterDao.findOne(searchTDM);
+		ResponseEntity<ResultUtil> postForEntity3 = restTemplate.postForEntity(pathConfig.getTermdeposit_detail_findMany(),
+				PostUtil.getRequestEntity(JSON.toJSONString(searchTDM)), ResultUtil.class);
+
+		TermDepositForMasterModel res_searchTDM = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity3.getBody().getData()), TermDepositForMasterModel.class);
+		
 		//根据accountNumber查询定存明细表
-		TermDepositDetailEntity searchTDD = new TermDepositDetailEntity();
+		TermDepositDetailModel searchTDD = new TermDepositDetailModel();
 		searchTDD.setAccountnumber(accountNumber);
-		List<TermDepositDetailEntity> res_searchTDD = termDepositDetailDao.findMany(searchTDD);
+		//List<TermDepositDetailModel> res_searchTDD = termDepositDetailDao.findMany(searchTDD);
+		ResponseEntity<ResultUtil> postForEntity4 = restTemplate.postForEntity(pathConfig.getTermdeposit_detail_findMany(),
+				PostUtil.getRequestEntity(JSON.toJSONString(searchTDD)), ResultUtil.class);
+
+		List<TermDepositDetailModel> res_searchTDD = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(postForEntity4.getBody().getData()), List.class);
+		
 		//返回前台集合
 		List<TermDepositDetailModel> allTermDepositDetail = new ArrayList();
 		//返回前台model 转换

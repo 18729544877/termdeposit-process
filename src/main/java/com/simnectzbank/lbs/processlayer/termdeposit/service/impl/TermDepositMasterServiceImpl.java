@@ -17,12 +17,34 @@ import com.alibaba.fastjson.JSONObject;
 import com.codingapi.tx.annotation.TxTransaction;
 import com.csi.sbs.common.business.json.JsonProcess;
 import com.csi.sbs.common.business.model.HeaderModel;
+import com.csi.sbs.common.business.model.accountservice.CurrentAccountMasterModel;
+import com.csi.sbs.common.business.model.accountservice.SavingAccountMasterModel;
+import com.csi.sbs.common.business.model.transactionservice.InsertTransactionLogModel;
 import com.csi.sbs.common.business.util.DataIsolationUtil;
+import com.csi.sbs.common.business.util.PostUtil;
 import com.csi.sbs.common.business.util.UUIDUtil;
 import com.csi.sbs.common.business.util.XmlToJsonUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.constant.ExceptionConstant;
+import com.simnectzbank.lbs.processlayer.termdeposit.constant.PathConstant;
+import com.simnectzbank.lbs.processlayer.termdeposit.constant.SysConstant;
+import com.simnectzbank.lbs.processlayer.termdeposit.exception.AcceptException;
+import com.simnectzbank.lbs.processlayer.termdeposit.exception.CallOtherException;
+import com.simnectzbank.lbs.processlayer.termdeposit.exception.NotFoundException;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.DepositAmountRangeModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositForMasterModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositForMasterModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositRateModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositRenewalModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.TransactionLogModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.AccountMasterService;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TermDepositMasterService;
+import com.simnectzbank.lbs.processlayer.termdeposit.service.TransactionLogService;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.AvailableNumberUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.CalculateMaturityDateUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.GetSysDateUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.LogUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.UTCUtil;
 
 
 @Service("TermDepositMasterService")
@@ -51,12 +73,12 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	public Map<String, Object> termDepositApplication(HeaderModel header, TermDepositMasterModel tdm) throws Exception {
 		Map<String, Object> map = new HashMap<String, Object>();
 		// check TdAccount Number
-		TermDepositMasterEntity tdaccount = new TermDepositMasterEntity();
+		TermDepositForMasterModel tdaccount = new TermDepositForMasterModel();
 		tdaccount.setAccountnumber(tdm.getTdAccountNumber());
 		tdaccount.setCurrencycode(tdm.getTdCcy());
 		//调用数据隔离工具类
-		tdaccount = (TermDepositMasterEntity) DataIsolationUtil.condition(header, tdaccount);
-		TermDepositMasterEntity retdaccount = (TermDepositMasterEntity) termDepositMasterDao.findOne(tdaccount);
+		tdaccount = (TermDepositForMasterModel) DataIsolationUtil.condition(header, tdaccount);
+		TermDepositForMasterModel retdaccount = (TermDepositForMasterModel) termDepositMasterDao.findOne(tdaccount);
 		if (retdaccount == null) {
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404006),
 					ExceptionConstant.ERROR_CODE404006);
@@ -68,24 +90,24 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		// check Debit Account Number(saving account)
 		String accountType = tdm.getDebitAccountNumber().substring(tdm.getDebitAccountNumber().length() - 3,
 				tdm.getDebitAccountNumber().length());
-		SavingAccountMasterEntity savaccount = new SavingAccountMasterEntity();
-		CurrentAccountMasterEntity currentaccount = new CurrentAccountMasterEntity();
-		SavingAccountMasterEntity resavaccount = null;
+		SavingAccountMasterModel savaccount = new SavingAccountMasterModel();
+		CurrentAccountMasterModel currentaccount = new CurrentAccountMasterModel();
+		SavingAccountMasterModel resavaccount = null;
 		if (accountType.equals(SysConstant.ACCOUNT_TYPE1)) {
 			savaccount.setAccountnumber(tdm.getDebitAccountNumber());
 			savaccount.setCustomernumber(header.getCustomerNumber());
 			//调用数据隔离工具类
-			savaccount = (SavingAccountMasterEntity) DataIsolationUtil.condition(header, savaccount);
-			resavaccount = (SavingAccountMasterEntity) savingAccountMasterDao.findOne(savaccount);
+			savaccount = (SavingAccountMasterModel) DataIsolationUtil.condition(header, savaccount);
+			resavaccount = (SavingAccountMasterModel) savingAccountMasterDao.findOne(savaccount);
 		}
 		if (accountType.equals(SysConstant.ACCOUNT_TYPE2)) {
 			currentaccount.setAccountnumber(tdm.getDebitAccountNumber());
 			currentaccount.setCustomernumber(header.getCustomerNumber());
 			//调用数据隔离工具类
-			currentaccount = (CurrentAccountMasterEntity) DataIsolationUtil.condition(header, currentaccount);
-			CurrentAccountMasterEntity recurrent = (CurrentAccountMasterEntity) currentAccountMasterDao
+			currentaccount = (CurrentAccountMasterModel) DataIsolationUtil.condition(header, currentaccount);
+			CurrentAccountMasterModel recurrent = (CurrentAccountMasterModel) currentAccountMasterDao
 					.findOne(currentaccount);
-			resavaccount = new SavingAccountMasterEntity();
+			resavaccount = new SavingAccountMasterModel();
 			resavaccount.setAccountnumber(recurrent.getAccountnumber());
 			resavaccount.setAvailablebalance(recurrent.getAvailablebalance());
 			resavaccount.setLedgebalance(recurrent.getLedgebalance());
@@ -110,7 +132,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 				.getBody();
 		String tdNumber = JsonProcess.changeToJSONObject(response).getString("nextAvailableNumber");
 		// Map Amount Range
-		DepositAmountRangeEntity depositAmountRange = new DepositAmountRangeEntity();
+		DepositAmountRangeModel depositAmountRange = new DepositAmountRangeModel();
 		depositAmountRange.setTdAmount(tdm.getTdAmount());
 		// depositAmountRange.setCountrycode(header.getCountryCode());
 		// depositAmountRange.setClearingcode(header.getClearingCode());
@@ -118,18 +140,18 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		depositAmountRange.setCcytype(tdm.getTdCcy());
 
 		// Alina 获取amountrangemax为null的amount range
-		DepositAmountRangeEntity maxInfo = new DepositAmountRangeEntity();
+		DepositAmountRangeModel maxInfo = new DepositAmountRangeModel();
 		// maxInfo.setCountrycode(header.getCountryCode());
 		// maxInfo.setClearingcode(header.getClearingCode());
 		// maxInfo.setBranchcode(header.getBranchCode());
 		maxInfo.setCcytype(tdm.getTdCcy());
-		DepositAmountRangeEntity reMax = depositAmountRangeDao.findMax(maxInfo);
+		DepositAmountRangeModel reMax = depositAmountRangeDao.findMax(maxInfo);
 		// Map Rate
-		TermDepositRateEntity rate = new TermDepositRateEntity();
+		TermDepositRateModel rate = new TermDepositRateModel();
 		if (reMax != null && tdm.getTdAmount().compareTo(reMax.getAmountrangemin()) >= 0) {
 			rate.setDepositrange(reMax.getId());
 		} else {
-			DepositAmountRangeEntity redep = depositAmountRangeDao.findOne(depositAmountRange);
+			DepositAmountRangeModel redep = depositAmountRangeDao.findOne(depositAmountRange);
 			if (redep == null) {
 				throw new AcceptException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE202009),
 						ExceptionConstant.ERROR_CODE202009);
@@ -137,7 +159,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 			rate.setDepositrange(redep.getId());
 		}
 		rate.setTdperiod(tdm.getTdContractPeriod());
-		TermDepositRateEntity rerate = (TermDepositRateEntity) termDepositRateDao.findOne(rate);
+		TermDepositRateModel rerate = (TermDepositRateModel) termDepositRateDao.findOne(rate);
 		if (rerate == null) {
 			throw new AcceptException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE202014),
 					ExceptionConstant.ERROR_CODE202014);
@@ -195,7 +217,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		    }
 		}
 		// TermDepositDetail add
-		TermDepositDetailEntity termDepositDetail = new TermDepositDetailEntity();
+		TermDepositDetailModel termDepositDetail = new TermDepositDetailModel();
 		termDepositDetail.setAccountnumber(tdm.getTdAccountNumber());
 		termDepositDetail.setDepositamount(tdm.getTdAmount());
 		termDepositDetail.setDepositnumber(tdNumber);
@@ -286,9 +308,9 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		Map<String, String> tdRes = transactionLogService.insertTransacitonLog(restTemplate, tdApplication);
 
 		// 给转出账户更新对方账户流水号
-		TransactionLogEntity transactionLogEntity = new TransactionLogEntity();
+		TransactionLogModel transactionLogEntity = new TransactionLogModel();
 		transactionLogEntity.setTranseq(depositRes.get("transeq"));
-		TransactionLogEntity transferOutUpdate = (TransactionLogEntity) transactionLogDao.findOne(transactionLogEntity);
+		TransactionLogModel transferOutUpdate = (TransactionLogModel) transactionLogDao.findOne(transactionLogEntity);
 		transactionLogEntity.setId(transferOutUpdate.getId());
 		transactionLogEntity.setTfrseqno(tdRes.get("transeq"));
 		transactionLogDao.update(transactionLogEntity);
@@ -307,46 +329,46 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	public Map<String, Object> termDepositDrawDown(HeaderModel header, TermDepositDrawDownModel tddm,RestTemplate restTemplate) throws Exception {
 		Map<String, Object> map = new HashMap<String, Object>();
 		// check TdAccount Number
-		TermDepositMasterEntity tdaccount = new TermDepositMasterEntity();
+		TermDepositForMasterModel tdaccount = new TermDepositForMasterModel();
 		tdaccount.setAccountnumber(tddm.getTdAccountNumber());
 		tdaccount.setCustomernumber(header.getCustomerNumber());
 		//调用数据隔离工具类
-		tdaccount = (TermDepositMasterEntity) DataIsolationUtil.condition(header, tdaccount);
-		TermDepositMasterEntity retdaccount = (TermDepositMasterEntity) termDepositMasterDao.findOne(tdaccount);
+		tdaccount = (TermDepositForMasterModel) DataIsolationUtil.condition(header, tdaccount);
+		TermDepositForMasterModel retdaccount = (TermDepositForMasterModel) termDepositMasterDao.findOne(tdaccount);
 		if (retdaccount == null) {
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404006),
 					ExceptionConstant.ERROR_CODE404006);
 		}
 
 		// check Transaction Account and TD number
-		TermDepositDetailEntity tddetail = new TermDepositDetailEntity();
+		TermDepositDetailModel tddetail = new TermDepositDetailModel();
 		tddetail.setAccountnumber(tddm.getTdAccountNumber());
 		tddetail.setDepositnumber(tddm.getTdNumber());
 
-		TermDepositDetailEntity retddetail = (TermDepositDetailEntity) termDepositDetailDao.findOne(tddetail);
+		TermDepositDetailModel retddetail = (TermDepositDetailModel) termDepositDetailDao.findOne(tddetail);
 		if (retddetail == null) {
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404006),
 					ExceptionConstant.ERROR_CODE404006);
 		}
 
 		// check Debit Account Number(saving account)
-		String accountType = tddm.getDebitAccountNumber().substring(tddm.getDebitAccountNumber().length() - 3);
-		SavingAccountMasterEntity savaccount = new SavingAccountMasterEntity();
-		CurrentAccountMasterEntity currentaccount = new CurrentAccountMasterEntity();
-		SavingAccountMasterEntity resavaccount = null;
+		String accountType = tddm0..getDebitAccountNumber().substring(tddm.getDebitAccountNumber().length() - 3);
+		SavingAccountMasterModel savaccount = new SavingAccountMasterModel();
+		CurrentAccountMasterModel currentaccount = new CurrentAccountMasterModel();
+		SavingAccountMasterModel resavaccount = null;
 		if (accountType.equals(SysConstant.ACCOUNT_TYPE1)) {
 			savaccount.setAccountnumber(tddm.getDebitAccountNumber());
 			//调用数据隔离工具类
-			savaccount = (SavingAccountMasterEntity) DataIsolationUtil.condition(header, savaccount);
-			resavaccount = (SavingAccountMasterEntity) savingAccountMasterDao.findOne(savaccount);
+			savaccount = (SavingAccountMasterModel) DataIsolationUtil.condition(header, savaccount);
+			resavaccount = (SavingAccountMasterModel) savingAccountMasterDao.findOne(savaccount);
 		}
 		if (accountType.equals(SysConstant.ACCOUNT_TYPE2)) {
 			currentaccount.setAccountnumber(tddm.getDebitAccountNumber());
 			//调用数据隔离工具类
-			currentaccount = (CurrentAccountMasterEntity) DataIsolationUtil.condition(header, currentaccount);
-			CurrentAccountMasterEntity recurrent = (CurrentAccountMasterEntity) currentAccountMasterDao
+			currentaccount = (CurrentAccountMasterModel) DataIsolationUtil.condition(header, currentaccount);
+			CurrentAccountMasterModel recurrent = (CurrentAccountMasterModel) currentAccountMasterDao
 					.findOne(currentaccount);
-			resavaccount = new SavingAccountMasterEntity();
+			resavaccount = new SavingAccountMasterModel();
 			resavaccount.setAccountnumber(recurrent.getAccountnumber());
 			resavaccount.setAvailablebalance(recurrent.getAvailablebalance());
 			resavaccount.setLedgebalance(recurrent.getLedgebalance());
@@ -373,7 +395,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		// Maturity Amount
 		BigDecimal maturityAmount = retddetail.getDepositamount().add(interest);
 		// update tddetail
-		TermDepositDetailEntity uptddetail = new TermDepositDetailEntity();
+		TermDepositDetailModel uptddetail = new TermDepositDetailModel();
 		uptddetail.setMaturityamount(maturityAmount);
 		uptddetail.setMaturityinterest(interest);
 		uptddetail.setMaturitystatus(SysConstant.MATURITY_STATUS_D);
@@ -485,10 +507,10 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 			throw new AcceptException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE202001),ExceptionConstant.ERROR_CODE202001);
 		}
 		// check debitAccountNumber and TD number
-		TermDepositDetailEntity termDetail = new TermDepositDetailEntity();
+		TermDepositDetailModel termDetail = new TermDepositDetailModel();
 		termDetail.setAccountnumber(tdrm.getTdaccountnumber());
 		termDetail.setDepositnumber(tdrm.getTdnumber());
-		TermDepositDetailEntity retermDetail = (TermDepositDetailEntity) termDepositDetailDao.findOne(termDetail);
+		TermDepositDetailModel retermDetail = (TermDepositDetailModel) termDepositDetailDao.findOne(termDetail);
 		if (retermDetail == null) {
 			throw new NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404006),
 					ExceptionConstant.ERROR_CODE404006);
@@ -508,7 +530,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		//计算利息
 		maturityInterest = tdamount.multiply(retermDetail.getTerminterestrate());
 		// update tdmaster
-		TermDepositDetailEntity uptermdeposit = new TermDepositDetailEntity();
+		TermDepositDetailModel uptermdeposit = new TermDepositDetailModel();
 		uptermdeposit.setId(retermDetail.getId());
 		uptermdeposit.setMaturityinterest(maturityInterest);
 		uptermdeposit.setMaturityamount(maturityInterest.add(tdamount));
@@ -517,18 +539,18 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		termDepositDetailDao.updateInterest(uptermdeposit);
 
 		// Map Amount Range
-		DepositAmountRangeEntity depositAmountRange = new DepositAmountRangeEntity();
+		DepositAmountRangeModel depositAmountRange = new DepositAmountRangeModel();
 		depositAmountRange.setTdAmount(tdamount);
-		DepositAmountRangeEntity redep = depositAmountRangeDao.findOne(depositAmountRange);
+		DepositAmountRangeModel redep = depositAmountRangeDao.findOne(depositAmountRange);
 		if (redep == null) {
 			throw new AcceptException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE202009),
 					ExceptionConstant.ERROR_CODE202009);
 		}
 		// Map Rate
-		TermDepositRateEntity rate = new TermDepositRateEntity();
+		TermDepositRateModel rate = new TermDepositRateModel();
 		rate.setDepositrange(redep.getId());
 		rate.setTdperiod(tdrm.getTdRenewalPeriod());
-		TermDepositRateEntity rerate = (TermDepositRateEntity) termDepositRateDao.findOne(rate);
+		TermDepositRateModel rerate = (TermDepositRateModel) termDepositRateDao.findOne(rate);
 		if (rerate == null) {
 			throw new AcceptException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE202014),
 					ExceptionConstant.ERROR_CODE202014);
@@ -539,7 +561,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		String tdNumber = JsonProcess.changeToJSONObject(response).getString("nextAvailableNumber");
 
 		// TermDepositMasterEntity add
-		TermDepositDetailEntity tdreniew = new TermDepositDetailEntity();
+		TermDepositDetailModel tdreniew = new TermDepositDetailModel();
 		tdreniew.setAccountnumber(tdrm.getTdaccountnumber());
 		tdreniew.setDepositamount(maturityInterest.add(tdamount));
 		tdreniew.setDepositnumber(tdNumber);
