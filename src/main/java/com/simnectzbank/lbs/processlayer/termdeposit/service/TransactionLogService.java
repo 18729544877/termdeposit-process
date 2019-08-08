@@ -4,13 +4,11 @@ import java.util.Map;
 
 import org.springframework.web.client.RestTemplate;
 
-import com.csi.sbs.common.business.model.transactionservice.InsertTransactionLogModel;
-
+import com.simnectzbank.lbs.processlayer.termdeposit.model.InsertTransactionLogModel;
 
 public interface TransactionLogService {
 
-	
-	public Map<String,String> insertTransacitonLog(RestTemplate restTemplate,InsertTransactionLogModel ase) throws Exception;
-	
-	
+	public Map<String, String> insertTransacitonLog(RestTemplate restTemplate, InsertTransactionLogModel ase)
+			throws Exception;
+
 }

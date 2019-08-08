@@ -19,7 +19,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.codingapi.tx.annotation.TxTransaction;
 import com.csi.sbs.common.business.json.JsonProcess;
 import com.csi.sbs.common.business.model.HeaderModel;
-import com.csi.sbs.common.business.model.accountservice.CurrentAccountMasterModel;
 import com.csi.sbs.common.business.util.DataIsolationUtil;
 import com.csi.sbs.common.business.util.PostUtil;
 import com.csi.sbs.common.business.util.ResultUtil;
@@ -30,7 +29,6 @@ import com.simnectzbank.lbs.processlayer.termdeposit.exception.NotFoundException
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailPreModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositEnquiryModel;
-import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositMasterModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositForMasterModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TermDepositEnquiryService;
 import com.simnectzbank.lbs.processlayer.termdeposit.util.LogUtil;

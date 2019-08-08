@@ -3,35 +3,32 @@ package com.simnectzbank.lbs.processlayer.termdeposit.model;
 import java.math.BigDecimal;
 
 public class TermDepositForMasterModel {
-private String id;
 	
+	private String id;
+
 	private String countrycode;
 
-    private String clearingcode;
+	private String clearingcode;
 
-    private String branchcode;
-    
-    private String sandboxid;
-    
-    private String dockerid;
-	
+	private String branchcode;
+
+	private String sandboxid;
+
+	private String dockerid;
+
 	private String customernumber;
 
-    private String relaccountnumber;
+	private String relaccountnumber;
 
-    private String currencycode;
+	private String currencycode;
 
-    private String accountnumber;
+	private String accountnumber;
 
-    private String accountstatus;
+	private String accountstatus;
 
-    private BigDecimal lastupdateddate;
-    
-    private BigDecimal createdate;
-    
-    
-    
-    
+	private BigDecimal lastupdateddate;
+
+	private BigDecimal createdate;
 
 	public BigDecimal getLastupdateddate() {
 		return lastupdateddate;
@@ -136,6 +133,5 @@ private String id;
 	public void setCustomernumber(String customernumber) {
 		this.customernumber = customernumber;
 	}
-    
-    
+
 }

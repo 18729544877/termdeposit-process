@@ -20,7 +20,6 @@ import com.codingapi.tx.annotation.TxTransaction;
 import com.csi.sbs.common.business.constant.CommonConstant;
 import com.csi.sbs.common.business.json.JsonProcess;
 import com.csi.sbs.common.business.model.HeaderModel;
-import com.csi.sbs.common.business.model.accountservice.CurrentAccountMasterModel;
 import com.csi.sbs.common.business.util.DataIsolationUtil;
 import com.csi.sbs.common.business.util.PostUtil;
 import com.csi.sbs.common.business.util.ResultUtil;
@@ -32,6 +31,7 @@ import com.simnectzbank.lbs.processlayer.termdeposit.constant.ExceptionConstant;
 import com.simnectzbank.lbs.processlayer.termdeposit.constant.SysConstant;
 import com.simnectzbank.lbs.processlayer.termdeposit.exception.AcceptException;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.ChequeBookModel;
+import com.simnectzbank.lbs.processlayer.termdeposit.model.CurrentAccountMasterModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.AccountMasterService;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TermDepositEnquiryService;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TransactionLogService;
@@ -73,7 +73,7 @@ public class AccountMasterServiceImpl implements AccountMasterService {
 		account = (CurrentAccountMasterModel) DataIsolationUtil.condition(header, account);
 		@SuppressWarnings("unchecked")
 		//CurrentAccountMasterModel reaccount = (CurrentAccountMasterModel) currentAccountMasterDao.findOne(account);
-		ResponseEntity<ResultUtil> postForEntity = restTemplate.postForEntity(pathConfig.getAccount_current_find(),
+		ResponseEntity<ResultUtil> postForEntity = restTemplate.postForEntity(pathConfig.getAccount_current_findOne(),
 				PostUtil.getRequestEntity(JSON.toJSONString(account)), ResultUtil.class);
 
 		CurrentAccountMasterModel reaccount =  JSONObject.parseObject(
