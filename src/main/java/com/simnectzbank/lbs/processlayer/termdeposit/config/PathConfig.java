@@ -63,6 +63,40 @@ public class PathConfig {
 	@Value("${account.current.withdrawal}")
 	private String account_current_withdrawal;
 	
+	@Value("${sysadmin.sysconfig.findOne}")
+	private String sysadmin_sysconfig_findOne;
+	
+	@Value("${sysadmin.sysconfig.update}")
+	private String sysadmin_sysconfig_update;
+	
+	@Value("${sysadmin.holiday.findOne}")
+	private String sysadmin_holiday_findOne;
+	
+	
+	public String getSysadmin_holiday_findOne() {
+		return sysadmin_holiday_findOne;
+	}
+
+	public void setSysadmin_holiday_findOne(String sysadmin_holiday_findOne) {
+		this.sysadmin_holiday_findOne = sysadmin_holiday_findOne;
+	}
+
+	public String getSysadmin_sysconfig_findOne() {
+		return sysadmin_sysconfig_findOne;
+	}
+
+	public void setSysadmin_sysconfig_findOne(String sysadmin_sysconfig_findOne) {
+		this.sysadmin_sysconfig_findOne = sysadmin_sysconfig_findOne;
+	}
+
+	public String getSysadmin_sysconfig_update() {
+		return sysadmin_sysconfig_update;
+	}
+
+	public void setSysadmin_sysconfig_update(String sysadmin_sysconfig_update) {
+		this.sysadmin_sysconfig_update = sysadmin_sysconfig_update;
+	}
+
 	public String getAccount_current_withdrawal() {
 		return account_current_withdrawal;
 	}

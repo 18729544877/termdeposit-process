@@ -57,9 +57,5 @@ public class UTCUtil {
 		ca.add(Calendar.HOUR, -8);
 		return format.format(ca.getTime());
 	}
-	
-//	public static void main(String args[]) throws Exception{
-//		System.out.println(getUTCTime());
-//	}
 
 }

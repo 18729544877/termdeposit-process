@@ -3,34 +3,29 @@ package com.simnectzbank.lbs.processlayer.termdeposit.service.impl;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.codingapi.tx.annotation.TxTransaction;
-import com.csi.sbs.common.business.constant.CommonConstant;
-import com.csi.sbs.common.business.json.JsonProcess;
 import com.csi.sbs.common.business.model.HeaderModel;
-import com.csi.sbs.common.business.util.PostUtil;
+import com.csi.sbs.common.business.util.ResponseUtil;
+import com.csi.sbs.common.business.util.ResultUtil;
+import com.csi.sbs.common.business.util.SendLogUtil;
 import com.csi.sbs.common.business.util.UUIDUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.component.LocaleMessage;
 import com.simnectzbank.lbs.processlayer.termdeposit.config.PathConfig;
 import com.simnectzbank.lbs.processlayer.termdeposit.constant.ExceptionConstant;
 import com.simnectzbank.lbs.processlayer.termdeposit.constant.SysConstant;
-import com.simnectzbank.lbs.processlayer.termdeposit.exception.CallOtherException;
-import com.simnectzbank.lbs.processlayer.termdeposit.exception.InsertException;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.InsertTransactionLogModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TransactionLogModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.AccountMasterService;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TransactionLogService;
 import com.simnectzbank.lbs.processlayer.termdeposit.util.AvailableNumberUtil;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.SendUtil;
 import com.simnectzbank.lbs.processlayer.termdeposit.util.UTCUtil;
 
 @Service("TransactionLogService")
@@ -41,111 +36,72 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
 	@Resource
 	private AccountMasterService accountMasterService;
-
+	
+	@Resource
+	LocaleMessage localeMessage;
+	
 	private SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
 
-	@SuppressWarnings({ "unchecked", "unused" })
+	private String classname = TermDepositMasterServiceImpl.class.getName();
+	
+
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
-	public Map<String, String> insertTransacitonLog(RestTemplate restTemplate, InsertTransactionLogModel ase)
+	public ResultUtil insertTransacitonLog(RestTemplate restTemplate, InsertTransactionLogModel ase, HeaderModel header)
 			throws Exception {
-		Map<String, String> map = new HashMap<String, String>();
+		ResultUtil result = null;
+		String method = "insertTransacitonLog";
+		long threadId = Thread.currentThread().getId();
+		SendLogUtil.sendDebug(new Date().getTime() + "|" + threadId + "|" + classname + "|" + method + "|" + "customernumber:" +header.getCustomerNumber() + "| method start");
 		if (ase.getRefaccountnumber() != null && ase.getAccountnumber().equals(ase.getRefaccountnumber())) {
-			throw new CallOtherException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE500007),
-					ExceptionConstant.ERROR_CODE500007);
+			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE500007, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NUMBER_CANNOT_SAME_WITH_REF_ACCOUNT_NUMBER));
 		}
-		String accountNumber = ase.getAccountnumber();
-		String accountType = accountNumber.substring(accountNumber.length() - 3);
-		HeaderModel header = new HeaderModel();
-		header.setCountryCode(ase.getCountrycode());
-		header.setClearingCode(ase.getClearingcode());
-		header.setSandBoxId(ase.getSandboxid());
-		header.setBranchCode(ase.getBranchcode());
-		header.setDockerId(ase.getDockerid());
-		// 插入日志不需要权限校验,先注释掉
-		// ResultUtil result = checkAccountNumber(header, accountType,
-		// accountNumber, restTemplate);
-		// if (result.getCode().equals("0")) {
-		// throw new
-		// NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404001),ExceptionConstant.ERROR_CODE404001);
-		// }
-		// @SuppressWarnings("unused")
-		String accountNumber1 = ase.getRefaccountnumber();
-		// if(accountNumber1 != null && accountNumber1.length() >0){
-		// String accountType1 =
-		// accountNumber1.substring(accountNumber1.length()-3);
-		// ResultUtil result1 = checkAccountNumber(header, accountType1,
-		// accountNumber1, restTemplate);
-		// if (result1.getCode().equals("0")) {
-		// throw new
-		// NotFoundException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE404009),ExceptionConstant.ERROR_CODE404009);
-		// }
-		// }
-		TransactionLogModel transactionLogEntity = new TransactionLogModel();
-		// 调用服务接口地址
-		String param1 = "{\"apiname\":\"getSystemParameter\"}";
-		ResponseEntity<String> result1 = restTemplate.postForEntity(
-				"http://" + CommonConstant.getSYSADMIN() + SysConstant.SERVICE_INTERNAL_URL + "",
-				PostUtil.getRequestEntity(param1), String.class);
-		if (result1.getStatusCodeValue() != 200) {
-			throw new CallOtherException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE500003),
-					ExceptionConstant.ERROR_CODE500003);
-		}
-
-		String path = JsonProcess.returnValue(JsonProcess.changeToJSONObject(result1.getBody()), "internaURL");
-		// 调用系统参数服务接口
-		String param2 = "{\"item\":\"SEQ\"}";
-		ResponseEntity<String> result2 = restTemplate.postForEntity(path, PostUtil.getRequestEntity(param2),
-				String.class);
-		if (result2.getStatusCodeValue() != 200) {
-			throw new CallOtherException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE500003),
-					ExceptionConstant.ERROR_CODE500003);
-		}
-		String SEQRes = result2.getBody();
-		JSONObject jsonObject1 = JsonProcess
-				.changeToJSONObject(JsonProcess.changeToJSONArray(SEQRes).get(0).toString());
-		String SEQ = JsonProcess.returnValue(jsonObject1, "value");
-		String reference = format.format(new Date()) + SEQ;
-		String transeq = format.format(new Date()) + ase.getTrantype() + ase.getChannel() + SEQ + ase.getCountrycode()
-				+ ase.getClearingcode() + ase.getBranchcode();
-		transactionLogEntity.setId(UUIDUtil.generateUUID());
-		transactionLogEntity.setReference(reference);
-		transactionLogEntity.setTranseq(transeq);
-		transactionLogEntity.setAccountnumber(ase.getAccountnumber());
-		transactionLogEntity.setTrandate(new BigDecimal(UTCUtil.getUTCTime()));
-		transactionLogEntity.setChannel(ase.getChannel());
-		transactionLogEntity.setChannelid(ase.getChannelid());
-		transactionLogEntity.setCountrycode(ase.getCountrycode());
-		transactionLogEntity.setClearingcode(ase.getClearingcode());
-		transactionLogEntity.setBranchcode(ase.getBranchcode());
-		transactionLogEntity.setSandboxid(ase.getSandboxid());
-		transactionLogEntity.setDockerid(ase.getDockerid());
-		transactionLogEntity.setTrantype(ase.getTrantype());
-		transactionLogEntity.setTranamt(ase.getTranamt());
-		transactionLogEntity.setPreviousbalamt(ase.getPreviousbalamt());
-		transactionLogEntity.setActualbalamt(ase.getActualbalamt());
-		transactionLogEntity.setRefaccountnumber(ase.getRefaccountnumber());
-		transactionLogEntity.setTfrseqno(ase.getTfrseqno());
-		transactionLogEntity.setCrdrmaintind(ase.getCrdrmaintind());
-		transactionLogEntity.setTrandesc(ase.getTrandesc());
-		transactionLogEntity.setCcy(ase.getCcy());
-
+		TransactionLogModel transactionLogModel = new TransactionLogModel();
+		transactionLogModel = getTransactionLogModel(ase, restTemplate);
 		try {
-
-			restTemplate.postForEntity(pathConfig.getTransaction_log_insert(),
-					PostUtil.getRequestEntity(JSON.toJSONString(transactionLogEntity)), String.class);
-			// transactionLogDao.insert(transactionLogEntity);
+            SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_insert(), JSON.toJSONString(transactionLogModel));
 		} catch (Exception e) {
-			throw new InsertException(ExceptionConstant.getExceptionMap().get(ExceptionConstant.ERROR_CODE500006),
-					ExceptionConstant.ERROR_CODE500006);
+			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE500006, localeMessage.getMessage(ExceptionConstant.TD_ACCOUNT_NUMBER_NOT_FOUND));
 		}
 
-		AvailableNumberUtil.availableSEQIncrease(restTemplate, SysConstant.NEXT_AVAILABLE_SEQ);
-		map.put("msg", SysConstant.CREATE_SUCCESS_TIP);
-		map.put("transeq", transactionLogEntity.getTranseq());
-		map.put("code", "1");
-		return map;
+		AvailableNumberUtil.availableSEQIncrease(restTemplate, SysConstant.NEXT_AVAILABLE_SEQ, pathConfig);
+		result = ResponseUtil.success(1, transactionLogModel.getTranseq(), SysConstant.CREATE_SUCCESS_TIP);
+		
+		String resultString = (result != null) ? result.toString() : null;
+	    SendLogUtil.sendDebug(new Date().getTime() +"|" + threadId + "|" + classname + "|" + method  +  "| method end result: " + resultString);
+		
+	    return result;
+	}
+	
+	private TransactionLogModel getTransactionLogModel(InsertTransactionLogModel ase, RestTemplate restTemplate) throws Exception {
+		TransactionLogModel transactionLogModel= new TransactionLogModel();
+		String sequence = SendUtil.sendPostForSysParameters(restTemplate, pathConfig.getSysadmin_sysconfig_findOne(), SysConstant.NEXT_AVAILABLE_SEQ);
+		String reference = format.format(new Date()) + sequence;
+		String transeq = format.format(new Date()) + ase.getTrantype() + ase.getChannel() + sequence + ase.getCountrycode()
+				+ ase.getClearingcode() + ase.getBranchcode();
+		transactionLogModel.setId(UUIDUtil.generateUUID());
+		transactionLogModel.setReference(reference);
+		transactionLogModel.setTranseq(transeq);
+		transactionLogModel.setAccountnumber(ase.getAccountnumber());
+		transactionLogModel.setTrandate(new BigDecimal(UTCUtil.getUTCTime()));
+		transactionLogModel.setChannel(ase.getChannel());
+		transactionLogModel.setChannelid(ase.getChannelid());
+		transactionLogModel.setCountrycode(ase.getCountrycode());
+		transactionLogModel.setClearingcode(ase.getClearingcode());
+		transactionLogModel.setBranchcode(ase.getBranchcode());
+		transactionLogModel.setSandboxid(ase.getSandboxid());
+		transactionLogModel.setDockerid(ase.getDockerid());
+		transactionLogModel.setTrantype(ase.getTrantype());
+		transactionLogModel.setTranamt(ase.getTranamt());
+		transactionLogModel.setPreviousbalamt(ase.getPreviousbalamt());
+		transactionLogModel.setActualbalamt(ase.getActualbalamt());
+		transactionLogModel.setRefaccountnumber(ase.getRefaccountnumber());
+		transactionLogModel.setTfrseqno(ase.getTfrseqno());
+		transactionLogModel.setCrdrmaintind(ase.getCrdrmaintind());
+		transactionLogModel.setTrandesc(ase.getTrandesc());
+		transactionLogModel.setCcy(ase.getCcy());
+		return transactionLogModel;
 	}
 
 	@SuppressWarnings("unused")

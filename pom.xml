@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.simnectzbank.lbs.processlayer</groupId>
-	<artifactId>termdeposit-process</artifactId>
+	<artifactId>term-deposit-process</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>termdeposit-process</name>
+	<name>term-deposit-process</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>

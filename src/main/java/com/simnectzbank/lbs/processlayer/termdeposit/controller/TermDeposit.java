@@ -1,6 +1,5 @@
 package com.simnectzbank.lbs.processlayer.termdeposit.controller;
 
-import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.csi.sbs.common.business.model.HeaderModel;
 import com.csi.sbs.common.business.util.HeaderModelUtil;
 import com.csi.sbs.common.business.util.ResultUtil;
+import com.csi.sbs.common.business.util.SendLogUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.ChequeBookModel;
@@ -36,7 +36,7 @@ import io.swagger.annotations.ApiResponses;
 
 @CrossOrigin // 解决跨域请求
 @Controller
-@RequestMapping("/deposit/term")
+@RequestMapping("/deposit")
 @Api(value = "Then controller is term deposit")
 public class TermDeposit {
 
@@ -61,7 +61,7 @@ public class TermDeposit {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@RequestMapping(value = "/termDepositApplication", method = RequestMethod.POST)
 	@ResponseBody
 	@ApiOperation(value = "This API is designed to apply for a term deposit.", notes = "version 0.0.1")
@@ -76,14 +76,12 @@ public class TermDeposit {
 		ResultUtil result = new ResultUtil();
 		try{
             HeaderModel header = HeaderModelUtil.getHeader(request);
-			Map<String, Object> map = termDepositMasterService.termDepositApplication(header, termDepositMasterModel);
-			result.setCode(map.get("code").toString());
-			result.setMsg(map.get("msg").toString());
-			result.setData(map.get("data").toString());
-			return result;
+            result = termDepositMasterService.termDepositApplication(header, termDepositMasterModel);
 		}catch(Exception e){
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 
 	/**
@@ -93,6 +91,7 @@ public class TermDeposit {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("rawtypes")
 	@RequestMapping(value = "/termDepositDrawDown", method = RequestMethod.POST)
 	@ResponseBody
 	@ApiOperation(value = "This API is designed to make a term deposit drawdown. ", notes = "version 0.0.1")
@@ -102,15 +101,17 @@ public class TermDeposit {
 		@ApiResponse(code = 403, message = "Token has incorrect scope or a security policy was violated. Action: Please check whether you’re using the right token with the legal authorized user account."),
 		@ApiResponse(code = 500, message = "Something went wrong on the API gateway or micro-service. Action: check your network and try again later."),
     })
-	public String termDepositDrawDown(@RequestBody TermDepositDrawDownModel termDepositDrawDownModel, HttpServletRequest request)
+	public ResultUtil termDepositDrawDown(@RequestBody TermDepositDrawDownModel termDepositDrawDownModel, HttpServletRequest request)
 			throws Exception {
+		ResultUtil result = new ResultUtil();
 		try{
 			HeaderModel header = HeaderModelUtil.getHeader(request);
-			Map<String, Object> map = termDepositMasterService.termDepositDrawDown(header, termDepositDrawDownModel,restTemplate);
-			return objectMapper.writeValueAsString(map);
+			result = termDepositMasterService.termDepositDrawDown(header, termDepositDrawDownModel,restTemplate);
 		}catch(Exception e){
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 
 	/**
@@ -120,6 +121,7 @@ public class TermDeposit {
 	 * @return
 	 * @throws Exception
 	 */
+	@SuppressWarnings("rawtypes")
 	@RequestMapping(value = "/termDepositRenewal", method = RequestMethod.POST)
 	@ResponseBody
 	@ApiOperation(value = "This API is designed to renew a term deposit.", notes = "version 0.0.1")
@@ -129,15 +131,17 @@ public class TermDeposit {
 		@ApiResponse(code = 403, message = "Token has incorrect scope or a security policy was violated. Action: Please check whether you’re using the right token with the legal authorized user account."),
 		@ApiResponse(code = 500, message = "Something went wrong on the API gateway or micro-service. Action: check your network and try again later."),
     })
-	public String termDepositRenewal(@RequestBody TermDepositRenewalModel termDepositRenewalModel, HttpServletRequest request)
+	public ResultUtil termDepositRenewal(@RequestBody TermDepositRenewalModel termDepositRenewalModel, HttpServletRequest request)
 			throws Exception {
+		ResultUtil result = new ResultUtil();
 		try{
 			HeaderModel header = HeaderModelUtil.getHeader(request);
-			Map<String, Object> map = termDepositMasterService.termDepositRenewal(header,termDepositRenewalModel);
-			return objectMapper.writeValueAsString(map);
+			result = termDepositMasterService.termDepositRenewal(header,termDepositRenewalModel);
 		}catch(Exception e){
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 
 	/**
@@ -159,12 +163,15 @@ public class TermDeposit {
     })
 	public ResultUtil termDepositEnquiry(@RequestBody @Validated TermDepositEnquiryModel termDepositEnquiryModel,HttpServletRequest request)
 			throws Exception {
+		ResultUtil result = new ResultUtil();
 		try {
 			HeaderModel header = HeaderModelUtil.getHeader(request);
-			return termDepositEnquiryService.termDepositEnquiry(header,termDepositEnquiryModel, restTemplate);
+			result = termDepositEnquiryService.termDepositEnquiry(header,termDepositEnquiryModel, restTemplate);
 		} catch (Exception e) {
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 	
 	/**
@@ -174,7 +181,7 @@ public class TermDeposit {
 	 * @return
 	 * @throws JsonProcessingException
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes" })
 	@RequestMapping(value = "/allTermDeposit/{customerNumber}", method = RequestMethod.GET)
 	@ResponseBody
 	@ApiOperation(value = "This API is designed to retrieve all the term deposits of this customer.", notes = "version 0.0.1")
@@ -186,12 +193,15 @@ public class TermDeposit {
     })
 	public ResultUtil allTermDeposit(@ApiParam(name = "customerNumber", value = "customer Number eg: 001000000001", required = true) @PathVariable("customerNumber") String customerNumber,HttpServletRequest request)
 			throws Exception {
+		ResultUtil result = new ResultUtil();
 		try {
 			HeaderModel header = HeaderModelUtil.getHeader(request);
-			return termDepositEnquiryService.termDepositAllEnquiry(header, customerNumber, restTemplate);
+			result = termDepositEnquiryService.termDepositAllEnquiry(header, customerNumber, restTemplate);
 		} catch (Exception e) {
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 	
 	/**
@@ -213,12 +223,15 @@ public class TermDeposit {
     })
 	public ResultUtil termDeposit(@ApiParam(name = "accountNumber", value = "accountNumber eg: HK760001001000000005100", required = true) @PathVariable("accountNumber") String accountNumber,HttpServletRequest request)
 			throws Exception {
+		ResultUtil result = new ResultUtil();
 		try {
 			HeaderModel header = HeaderModelUtil.getHeader(request);
-			return termDepositEnquiryService.getTermDepositByAccount(header, accountNumber, restTemplate);
+			result = termDepositEnquiryService.getTermDepositByAccount(header, accountNumber, restTemplate);
 		} catch (Exception e) {
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -232,17 +245,15 @@ public class TermDeposit {
 			@ApiResponse(code = 500, message = "Something went wrong on the API gateway or micro-service. Action: check your network and try again later."), })
 	public ResultUtil chequeBookCreation(@RequestBody @Validated ChequeBookModel chequeBookModel,
 			HttpServletRequest request) throws Exception {
-		Map<String, Object> normalmap = null;
 		ResultUtil result = new ResultUtil();
 		try {
             HeaderModel header = HeaderModelUtil.getHeader(request);
-			normalmap = accountMasterService.chequeBookRequest(header, chequeBookModel, restTemplate);
-			result.setCode(normalmap.get("code").toString());
-			result.setMsg(normalmap.get("msg").toString());
-			return result;
+            result = accountMasterService.chequeBookRequest(header, chequeBookModel, restTemplate);
 		} catch (Exception e) {
+			SendLogUtil.sendError(e.getMessage());
 			throw e;
 		}
+		return result;
 	}
 
 }
