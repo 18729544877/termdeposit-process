@@ -10,7 +10,7 @@ public class NumberConstant {
 	public static final int NUMBER_INT_9 = 9;
 	public static final int NUMBER_INT_97 = 97;
 	public static final int NUMBER_INT_23 = 23;
-	public static final int ACCOUNT_TYPE_LENGTH = 1;
+	public static final int ACCOUNT_TYPE_LENGTH = 3;
 	
 
 	public static final String SUFFIX_FILL_ONE_ZERO = "0";

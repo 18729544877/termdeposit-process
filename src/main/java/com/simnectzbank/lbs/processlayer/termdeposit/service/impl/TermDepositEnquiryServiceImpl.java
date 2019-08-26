@@ -8,7 +8,6 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,6 +30,7 @@ import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositDetailPreM
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositEnquiryModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.model.TermDepositForMasterModel;
 import com.simnectzbank.lbs.processlayer.termdeposit.service.TermDepositEnquiryService;
+import com.simnectzbank.lbs.processlayer.termdeposit.util.JsonStyleUtil;
 import com.simnectzbank.lbs.processlayer.termdeposit.util.LogUtil;
 import com.simnectzbank.lbs.processlayer.termdeposit.util.SendUtil;
 
@@ -48,7 +48,6 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil termDepositEnquiry(HeaderModel header,TermDepositEnquiryModel tdem,RestTemplate restTemplate) throws Exception {
 		ResultUtil result = null;
 		String method = "termDepositEnquiry";
@@ -111,7 +110,7 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 						SysConstant.OPERATION_SUCCESS, 
 						logstr,
 						pathConfig);
-				result = ResponseUtil.success(ReturnConstant.RETURN_CODE_FAIL, tddetail, localeMessage.getMessage(ExceptionConstant.SEARCH_SUCCESS));
+				result = ResponseUtil.success(200, tddetail, localeMessage.getMessage(ExceptionConstant.SEARCH_SUCCESS));
 			}
 		}	
 		
@@ -125,7 +124,6 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil termDepositAllEnquiry(HeaderModel header,String customerNumber, RestTemplate restTemplate) throws Exception {
 		List allTermDepositDetail = new ArrayList();
 		ResultUtil result = null;
@@ -144,32 +142,40 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 				searchTDD.setAccountnumber(res_searchTDM.get(i).getAccountnumber());
 				//List<TermDepositDetailModel> res_searchTDD = termDepositDetailDao.findMany(searchTDD);
 				ResultUtil termDepositDetailResult = SendUtil.sendPostRequest(restTemplate, pathConfig.getTermdeposit_detail_findMany(), JSON.toJSONString(searchTDD));
-
-				List<TermDepositDetailModel> res_searchTDD = JSONObject.parseArray(
-						JsonProcess.changeEntityTOJSON(termDepositDetailResult.getData()), TermDepositDetailModel.class);
+				Object data = termDepositDetailResult.getData();
+				List<TermDepositDetailModel> res_searchTDD = new ArrayList();
+				TermDepositDetailModel termDepositDetailModel = null;
+				if(JsonStyleUtil.getJSONArrayFlag(data)){					
+					res_searchTDD = JSONObject.parseArray(JsonProcess.changeEntityTOJSON(termDepositDetailResult.getData()), TermDepositDetailModel.class);
+				}else{
+					termDepositDetailModel = JSONObject.parseObject(JsonProcess.changeEntityTOJSON(termDepositDetailResult.getData()), TermDepositDetailModel.class);
+					res_searchTDD.add(termDepositDetailModel);
+				}
 				
 				List<TermDepositDetailModel> temp = new ArrayList();
-				for(int j=0;j<res_searchTDD.size();j++){
-					//model change
-					TermDepositDetailModel tddetail = new TermDepositDetailModel();
-					tddetail.setAccountnumber(res_searchTDD.get(j).getAccountnumber());
-					tddetail.setDepositamount(res_searchTDD.get(j).getDepositamount());
-					tddetail.setDepositnumber(res_searchTDD.get(j).getDepositnumber());
-					tddetail.setMaturityamount(res_searchTDD.get(j).getMaturityamount());
-					tddetail.setMaturitydate(String.valueOf(res_searchTDD.get(j).getMaturitydate()));
-					tddetail.setMaturityinterest(res_searchTDD.get(j).getMaturityinterest());
-					tddetail.setMaturitystatus(res_searchTDD.get(j).getMaturitystatus());
-					tddetail.setTerminterestrate(res_searchTDD.get(j).getTerminterestrate());
-					tddetail.setTermperiod(res_searchTDD.get(j).getTermperiod());
-					if(res_searchTDD.get(j).getCreatedate()!=null && !StringUtils.isEmpty(res_searchTDD.get(j).getCreatedate())){
-						tddetail.setCreatedate(String.valueOf(res_searchTDD.get(j).getCreatedate()));
+				if(res_searchTDD != null){
+					for(int j=0;j<res_searchTDD.size();j++){
+						//model change
+						TermDepositDetailModel tddetail = new TermDepositDetailModel();
+						tddetail.setAccountnumber(res_searchTDD.get(j).getAccountnumber());
+						tddetail.setDepositamount(res_searchTDD.get(j).getDepositamount());
+						tddetail.setDepositnumber(res_searchTDD.get(j).getDepositnumber());
+						tddetail.setMaturityamount(res_searchTDD.get(j).getMaturityamount());
+						tddetail.setMaturitydate(String.valueOf(res_searchTDD.get(j).getMaturitydate()));
+						tddetail.setMaturityinterest(res_searchTDD.get(j).getMaturityinterest());
+						tddetail.setMaturitystatus(res_searchTDD.get(j).getMaturitystatus());
+						tddetail.setTerminterestrate(res_searchTDD.get(j).getTerminterestrate());
+						tddetail.setTermperiod(res_searchTDD.get(j).getTermperiod());
+						if(res_searchTDD.get(j).getCreatedate()!=null && !StringUtils.isEmpty(res_searchTDD.get(j).getCreatedate())){
+							tddetail.setCreatedate(String.valueOf(res_searchTDD.get(j).getCreatedate()));
+						}
+						tddetail.setCurrencycode(res_searchTDM.get(i).getCurrencycode());
+						tddetail.setSystemdate(String.valueOf(res_searchTDD.get(j).getSystemdate()));
+						temp.add(tddetail);
 					}
-					tddetail.setCurrencycode(res_searchTDM.get(i).getCurrencycode());
-					tddetail.setSystemdate(String.valueOf(res_searchTDD.get(j).getSystemdate()));
-					temp.add(tddetail);
-				}
-				if(temp.size()>0){
-					allTermDepositDetail.add(temp);
+					if(temp.size()>0){
+						allTermDepositDetail.add(temp);
+					}
 				}
 			}
 		}
@@ -189,7 +195,6 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil getTermDepositByAccount(HeaderModel header, String accountNumber, RestTemplate restTemplate)
 			throws Exception {
 		ResultUtil result = null;
@@ -200,7 +205,7 @@ public  class TermDepositEnquiryServiceImpl implements TermDepositEnquiryService
 		TermDepositForMasterModel searchTDM = new TermDepositForMasterModel();
 		searchTDM.setAccountnumber(accountNumber);
 		//TermDepositForMasterModel res_searchTDM = (TermDepositForMasterModel) termDepositMasterDao.findOne(searchTDM);
-		ResultUtil termDEpositDetaiResult = SendUtil.sendPostRequest(restTemplate, pathConfig.getTermdeposit_detail_findMany(), JSON.toJSONString(searchTDM));
+		ResultUtil termDEpositDetaiResult = SendUtil.sendPostRequest(restTemplate, pathConfig.getTermdeposit_master_findone(), JSON.toJSONString(searchTDM));
 		TermDepositForMasterModel res_searchTDM = JSONObject.parseObject(
 				JsonProcess.changeEntityTOJSON(termDEpositDetaiResult.getData()), TermDepositForMasterModel.class);
 		

@@ -37,8 +37,10 @@ public class SendUtil {
     	
     	ResponseEntity<String> rest = restTemplate.postForEntity(path, PostUtil.getRequestEntity(JSON.toJSONString(sysConfigModel)), String.class);
     	ResultUtil changeResult = ChangeToResultUtil.change(rest);
-    	
-    	return (String) changeResult.getData();
+    	SysConfigModel account = JSONObject.parseObject(
+				JsonProcess.changeEntityTOJSON(changeResult.getData()), SysConfigModel.class);
+    	return account.getValue(); 
+    			
     }
 
 	

@@ -1,0 +1,7 @@
+{
+  "debitAccountNumber": "HK720001001000000001001",
+  "tdAccountNumber": "HK760001001000000005100",
+  "tdAmount": 20000,
+  "tdCcy": "HKD",
+  "tdContractPeriod": "1month"
+}

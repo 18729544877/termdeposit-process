@@ -13,6 +13,6 @@ public class ReturnConstant {
 	public static final String SUCCESS = " success!";
 	public static final String CREATED = "Created";
 	public static final String UPDATE_CONTACT_SUCCESS = "update contact information success:";
-	public static final String TRANSACTION_ACCEPTED = "Transaction Accepted";
+	public static final String TRANSACTION_ACCEPTED = "transaction.accepted";
 	public static final String RECORD_NOT_FOUND = "record.not.found";
 }

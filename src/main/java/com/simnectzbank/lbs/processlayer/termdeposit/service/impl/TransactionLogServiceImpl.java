@@ -66,7 +66,7 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 		}
 
 		AvailableNumberUtil.availableSEQIncrease(restTemplate, SysConstant.NEXT_AVAILABLE_SEQ, pathConfig);
-		result = ResponseUtil.success(1, transactionLogModel.getTranseq(), SysConstant.CREATE_SUCCESS_TIP);
+		result = ResponseUtil.success(200, transactionLogModel.getTranseq(), SysConstant.CREATE_SUCCESS_TIP);
 		
 		String resultString = (result != null) ? result.toString() : null;
 	    SendLogUtil.sendDebug(new Date().getTime() +"|" + threadId + "|" + classname + "|" + method  +  "| method end result: " + resultString);

@@ -1,0 +1,5 @@
+{
+  "accountNumber": "HK110001001000000002002",
+  "chequeBookSize": 50,
+  "chequeBookType": "S"
+}

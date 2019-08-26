@@ -24,7 +24,7 @@ public class TermdepositProcessApplication {
 		ApplicationContext context = SpringApplication.run(TermdepositProcessApplication.class, args);
 		
 		//init log configuration
-		InitLog.loadLogConfig(context,"account-open-process");
+		InitLog.loadLogConfig(context,"term-deposit-process");
 	}
 
 }

@@ -6,7 +6,6 @@ import java.util.Date;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.alibaba.fastjson.JSON;
@@ -50,7 +49,6 @@ public class AccountMasterServiceImpl implements AccountMasterService {
 	@SuppressWarnings("rawtypes")
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil chequeBookRequest(HeaderModel header, ChequeBookModel cbm, RestTemplate restTemplate)
 			throws Exception {
 		String method = "chequeBookRequest";
@@ -60,7 +58,7 @@ public class AccountMasterServiceImpl implements AccountMasterService {
 		
 		//check whether is current account
 		result = IsCurrentTypeUtil.isCurrentType(cbm.getAccountNumber(), localeMessage);
-		if(result != null){
+		if(result == null){
 			//check whether exist the account
 			CurrentAccountMasterModel account = new CurrentAccountMasterModel();
 			account.setAccountnumber(cbm.getAccountNumber());
@@ -75,7 +73,7 @@ public class AccountMasterServiceImpl implements AccountMasterService {
 				result = ResponseUtil.fail(ReturnConstant.RETURN_CODE_FAIL, localeMessage.getMessage(ReturnConstant.RECORD_NOT_FOUND));
 			}else{			
 				// check account status
-				if (!reaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE2)) {
+				if (!reaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE_AVAILABLE)) {
 					result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
 				}
 				account.setChequebooksize(Long.parseLong(cbm.getChequeBookSize()));
@@ -89,7 +87,7 @@ public class AccountMasterServiceImpl implements AccountMasterService {
 				LogUtil.saveLog(restTemplate, SysConstant.OPERATION_UPDATE, SysConstant.LOCAL_SERVICE_NAME,
 						SysConstant.OPERATION_SUCCESS, logstr, pathConfig);
 				
-				result = ResponseUtil.success(ReturnConstant.RETURN_CODE_1, localeMessage.getMessage(ReturnConstant.TRANSACTION_ACCEPTED));
+				result = ResponseUtil.success(ReturnConstant.RETURN_CODE_200, localeMessage.getMessage(ReturnConstant.TRANSACTION_ACCEPTED));
 			}
 		}
 

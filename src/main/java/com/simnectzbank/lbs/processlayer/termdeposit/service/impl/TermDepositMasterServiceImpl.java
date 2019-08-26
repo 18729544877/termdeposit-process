@@ -2,11 +2,11 @@ package com.simnectzbank.lbs.processlayer.termdeposit.service.impl;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.alibaba.fastjson.JSON;
@@ -74,7 +74,6 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil termDepositApplication(HeaderModel header, TermDepositMasterModel tdm) throws Exception {
 		ResultUtil result = null;
 		String method = "termDepositApplication";
@@ -92,199 +91,112 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		
 		if (retdaccount == null) {
 			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE404006, localeMessage.getMessage(ExceptionConstant.TD_ACCOUNT_NUMBER_NOT_FOUND));
-		}else if(!retdaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE2)){
+		}else if(!retdaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE_AVAILABLE)){
 			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
 		}else{
 			
-		}
-		
-		// check Debit Account Number(saving account)
-		String accountType = AccountUtil.getAccountType(tdm.getDebitAccountNumber());
-		SavingAccountMasterModel savaccount = new SavingAccountMasterModel();
-		CurrentAccountMasterModel currentaccount = new CurrentAccountMasterModel();
-		SavingAccountMasterModel resavaccount = null;
-		if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
-			resavaccount = getSaveingAccount(tdm, header, savaccount);
-		}
-		if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
-			CurrentAccountMasterModel recurrent = getCurrentAccount(tdm, header, currentaccount);
-			resavaccount = new SavingAccountMasterModel();
-			resavaccount.setAccountnumber(recurrent.getAccountnumber());
-			resavaccount.setAvailablebalance(recurrent.getAvailablebalance());
-			resavaccount.setLedgebalance(recurrent.getLedgebalance());
-			resavaccount.setCustomernumber(header.getCustomerNumber());
-		}
-
-		if (resavaccount == null) {
-			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE404007, localeMessage.getMessage(ExceptionConstant.DEBIT_ACCOUNT_NUMBER_NOT_FOUND));
-		}else if(!resavaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE2)) {
-			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
-		}else if(resavaccount.getAvailablebalance().compareTo(tdm.getTdAmount()) == -1) {
-			//insufficent fund
-			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202002, localeMessage.getMessage(ExceptionConstant.INSUFFICIENT_FUND));
-		}else{
-			// get next available TD number
-			String tdNumber = SendUtil.sendPostForSysParameters(restTemplate, pathConfig.getSysadmin_sysconfig_findOne(), "NextAvailableTDNumber");
-			// Map Amount Range
-			DepositAmountRangeModel depositAmountRange = new DepositAmountRangeModel();
-			depositAmountRange.setTdAmount(tdm.getTdAmount());
-			// depositAmountRange.setCountrycode(header.getCountryCode());
-			// depositAmountRange.setClearingcode(header.getClearingCode());
-			// depositAmountRange.setBranchcode(header.getBranchCode());
-			depositAmountRange.setCcytype(tdm.getTdCcy());
-			
-			// Alina 获取amountrangemax为null的amount range
-			DepositAmountRangeModel maxInfo = new DepositAmountRangeModel();
-			// maxInfo.setCountrycode(header.getCountryCode());
-			// maxInfo.setClearingcode(header.getClearingCode());
-			// maxInfo.setBranchcode(header.getBranchCode());
-			maxInfo.setCcytype(tdm.getTdCcy());
-			//DepositAmountRangeModel reMax = depositAmountRangeDao.findMax(maxInfo);
-			ResultUtil depositRange = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findMax(), JSON.toJSONString(maxInfo));
-			DepositAmountRangeModel reMax = JSONObject.parseObject(
-					JsonProcess.changeEntityTOJSON(depositRange.getData()), DepositAmountRangeModel.class);
-			// Map Rate
-			TermDepositRateModel rate = new TermDepositRateModel();
-			if (reMax != null && tdm.getTdAmount().compareTo(reMax.getAmountrangemin()) >= 0) {
-				rate.setDepositrange(reMax.getId());
-			} else {
-				//DepositAmountRangeModel redep = depositAmountRangeDao.findOne(depositAmountRange);
-				ResultUtil depositAmountRangeFindOne = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findOne(), JSON.toJSONString(depositRange));
-				DepositAmountRangeModel redep = JSONObject.parseObject(
-						JsonProcess.changeEntityTOJSON(depositAmountRangeFindOne.getData()), DepositAmountRangeModel.class);
-				
-				if (redep == null) {
-					result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202009, localeMessage.getMessage(ExceptionConstant.THE_AMOUNT_NOT_SUPPORT_TERM_DEPOSIT));
-				}else{					
-					rate.setDepositrange(redep.getId());
-				}
+			// check Debit Account Number(saving account)
+			String accountType = AccountUtil.getAccountType(tdm.getDebitAccountNumber());
+			SavingAccountMasterModel savaccount = new SavingAccountMasterModel();
+			CurrentAccountMasterModel currentaccount = new CurrentAccountMasterModel();
+			SavingAccountMasterModel resavaccount = null;
+			if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
+				resavaccount = getSaveingAccount(tdm, header, savaccount);
 			}
-			rate.setTdperiod(tdm.getTdContractPeriod());
+			if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
+				CurrentAccountMasterModel recurrent = getCurrentAccount(tdm, header, currentaccount);
+				resavaccount = new SavingAccountMasterModel();
+				resavaccount.setAccountnumber(recurrent.getAccountnumber());
+				resavaccount.setAvailablebalance(recurrent.getAvailablebalance());
+				resavaccount.setLedgebalance(recurrent.getLedgebalance());
+				resavaccount.setCustomernumber(header.getCustomerNumber());
+			}
 			
-			ResultUtil termDepositRateFindOne = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findOne(), JSON.toJSONString(rate));
-			TermDepositRateModel rerate = JSONObject.parseObject(
-					JsonProcess.changeEntityTOJSON(termDepositRateFindOne.getData()), TermDepositRateModel.class);
-			
-			if (rerate == null) {
-				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202014, localeMessage.getMessage(ExceptionConstant.UNSUPPORTED_COTRACT_PERIOD));
+			if (resavaccount == null) {
+				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE404007, localeMessage.getMessage(ExceptionConstant.DEBIT_ACCOUNT_NUMBER_NOT_FOUND));
+			}else if(!resavaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE_AVAILABLE)) {
+				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
+			}else if(resavaccount.getAvailablebalance().compareTo(tdm.getTdAmount()) == -1) {
+				//insufficent fund
+				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202002, localeMessage.getMessage(ExceptionConstant.INSUFFICIENT_FUND));
 			}else{
-				// Calculate maturity date
-				SysConfigModel sysConfigModel = new SysConfigModel();
-				sysConfigModel.setItem("SystemDate");
-				Long maturitydate = null;
-				String redate = SendUtil.sendPostForSysParameters(restTemplate, pathConfig.getSysadmin_sysconfig_findOne(), sysConfigModel.toString());
-				maturitydate = CalculateMaturityDateUtil.CalculateTermDepositDays(redate, tdm.getTdContractPeriod());
-				//判断到期日是否是法定节假日(需要将UTC时间转为中国东八区时间)
-				HolidayModel model = new HolidayModel();
-				model.setDay(UTCUtil.convertToTwo(String.valueOf(maturitydate)).replace("-", ""));
+				// get next available TD number
+				String tdNumber =  SendUtil.sendPostForSysParameters(restTemplate, pathConfig.getSysadmin_sysconfig_findOne(), "NextAvailableTDNumber");
+				// Map Amount Range
+				DepositAmountRangeModel depositAmountRange = new DepositAmountRangeModel();
+				depositAmountRange.setTdAmount(tdm.getTdAmount());
+				// depositAmountRange.setCountrycode(header.getCountryCode());
+				// depositAmountRange.setClearingcode(header.getClearingCode());
+				// depositAmountRange.setBranchcode(header.getBranchCode());
+				depositAmountRange.setCcytype(tdm.getTdCcy());
 				
-				HolidayModel findHoliday = SendUtil.sendPostRequestStr(restTemplate, pathConfig.getSysadmin_holiday_findOne(), JSON.toJSONString(model), HolidayModel.class);
+				// Alina 获取amountrangemax为null的amount range
+				DepositAmountRangeModel maxInfo = new DepositAmountRangeModel();
+				maxInfo.setCountrycode(header.getCountryCode());
+				maxInfo.setClearingcode(header.getClearingCode());
+				maxInfo.setBranchcode(header.getBranchCode());
+				maxInfo.setCcytype(tdm.getTdCcy());
+				ResultUtil depositRange = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findMax(), JSON.toJSONString(maxInfo));
 				
-				if(findHoliday != null){
-					//到期日如果是法定节假日,将到期日往后顺延到下一个工作日
-					boolean temp_flag = true;
-					int temp_day = 0;
-					do{
-						temp_day++;
-						Long l1 = CalculateMaturityDateUtil.plusDay(temp_day, String.valueOf(maturitydate));
-						String temp_date = UTCUtil.convertToTwo(String.valueOf(l1));
-						String formatDateStr = temp_date.replace("-", "");
-						HolidayModel holidayModel = new HolidayModel();
-						holidayModel.setDay(formatDateStr);
+				List<DepositAmountRangeModel> reMax = JSONObject.parseArray(
+						JsonProcess.changeEntityTOJSON(depositRange.getData()), DepositAmountRangeModel.class);
+				DepositAmountRangeModel depositAmountRangeModel = getRangeAmount(reMax);
+				
+				if(depositAmountRangeModel != null){
+					// Map Rate
+					TermDepositRateModel rate = new TermDepositRateModel();
+					if (reMax != null && tdm.getTdAmount().compareTo(depositAmountRangeModel.getAmountrangemin()) >= 0) {
+						rate.setDepositrange(depositAmountRangeModel.getId());
+					} else {
+						//find deposit Amount Range
+						ResultUtil depositAmountRangeFindOne = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findOne(), JSON.toJSONString(depositRange));
+						DepositAmountRangeModel redep = JSONObject.parseObject(
+								JsonProcess.changeEntityTOJSON(depositAmountRangeFindOne.getData()), DepositAmountRangeModel.class);
 						
-						HolidayModel holiday = SendUtil.sendPostRequestStr(restTemplate, pathConfig.getSysadmin_holiday_findOne(), JSON.toJSONString(model), HolidayModel.class);
-						
-						if(holiday != null){
-							temp_flag = true;
-						}else{
-							//temp = temp_date;
-							maturitydate = CalculateMaturityDateUtil.plusDay(temp_day, String.valueOf(maturitydate));
-							temp_flag = false;
+						if (redep == null) {
+							result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202009, localeMessage.getMessage(ExceptionConstant.THE_AMOUNT_NOT_SUPPORT_TERM_DEPOSIT));
+						}else{					
+							rate.setDepositrange(redep.getId());
+							rate.setTdperiod(tdm.getTdContractPeriod());
+							
+							ResultUtil termDepositRateFindOne = SendUtil.sendPostRequest(restTemplate, pathConfig.getDeposit_range_findOne(), JSON.toJSONString(rate));
+							TermDepositRateModel rerate = JSONObject.parseObject(
+									JsonProcess.changeEntityTOJSON(termDepositRateFindOne.getData()), TermDepositRateModel.class);
+							
+							if (rerate == null) {
+								result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202014, localeMessage.getMessage(ExceptionConstant.UNSUPPORTED_COTRACT_PERIOD));
+							}else{
+								// Calculate maturity date
+								calculateMaturityDate(restTemplate, pathConfig, header, tdm, resavaccount, savaccount, currentaccount, accountType, tdNumber, rerate);
+								// write Log
+								String logstr = "Transaction Accepted TDNumber:" + tdNumber + " Account Number:" + tdm.getTdAccountNumber();
+								LogUtil.saveLog(restTemplate, SysConstant.OPERATION_CREATE, SysConstant.LOCAL_SERVICE_NAME,
+										SysConstant.OPERATION_SUCCESS, logstr, pathConfig);
+								
+								// get transeq
+								String transeq = getTransactionSequence(resavaccount, header, retdaccount, tdm, currentaccount, accountType, savaccount);
+								InsertTransactionLogModel tdApplication = getTermDepositApplication(header, tdm, retdaccount, transeq, resavaccount);
+								//insert td account transaction log
+								result = transactionLogService.insertTransacitonLog(restTemplate, tdApplication, header);
+								
+								if(result != null && ReturnConstant.RETURN_CODE_200.equals(result.getCode())){							
+									TransactionLogModel transactionLogEntity = new TransactionLogModel();
+									transactionLogEntity.setTranseq(transeq);
+									ResultUtil rest = SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_findOne(), JSON.toJSONString(transactionLogEntity));
+									//find log id
+									TransactionLogModel transferOutUpdate = JSONObject.parseObject(
+											JsonProcess.changeEntityTOJSON(rest.getData()), TransactionLogModel.class);
+									
+									transactionLogEntity.setId(transferOutUpdate.getId());
+									transactionLogEntity.setTfrseqno(transeq);
+									//update log
+									SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_update(), JSON.toJSONString(transactionLogEntity));
+									result = ResponseUtil.success(200, tdNumber, logstr);
+								}
+							}
 						}
-					}while(temp_flag);
+					}
 				}
-				// TermDepositDetail add
-				TermDepositDetailPreModel termDepositDetail = new TermDepositDetailPreModel();
-				termDepositDetail.setAccountnumber(tdm.getTdAccountNumber());
-				termDepositDetail.setDepositamount(tdm.getTdAmount());
-				termDepositDetail.setDepositnumber(tdNumber);
-				termDepositDetail.setSandboxid(header.getSandBoxId());
-				termDepositDetail.setDockerid(header.getDockerId());
-				termDepositDetail.setId(UUIDUtil.generateUUID());
-				termDepositDetail.setMaturitydate(new BigDecimal(maturitydate));
-				termDepositDetail.setMaturitystatus(SysConstant.MATURITY_STATUS_A);
-				termDepositDetail.setTerminterestrate(rerate.getTdinterestrate());
-				termDepositDetail.setTermperiod(tdm.getTdContractPeriod());
-				termDepositDetail.setCreatedate(new BigDecimal(UTCUtil.getUTCTime()));
-				termDepositDetail.setSystemdate(new BigDecimal(GetSysDateUtil.getSystemDate(restTemplate, pathConfig)));
-				
-				if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
-					savaccount.setAccountnumber(resavaccount.getAccountnumber());
-					savaccount.setAvailablebalance(resavaccount.getAvailablebalance().subtract(tdm.getTdAmount()));
-					savaccount.setLedgebalance(resavaccount.getLedgebalance().subtract(tdm.getTdAmount()));
-					
-					//int i = savingAccountMasterDao.withdrawal(savaccount);
-					SendUtil.sendPostRequest(restTemplate, pathConfig.getAccount_saving_withdrawal(), JSON.toJSONString(savaccount));
-				}
-				if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
-					currentaccount.setAccountnumber(resavaccount.getAccountnumber());
-					currentaccount.setAvailablebalance(resavaccount.getAvailablebalance().subtract(tdm.getTdAmount()));
-					currentaccount.setLedgebalance(resavaccount.getLedgebalance().subtract(tdm.getTdAmount()));
-					//int i = currentAccountMasterDao.withdrawal(currentaccount);
-					SendUtil.sendPostRequest(restTemplate, pathConfig.getAccount_current_withdrawal(), JSON.toJSONString(currentaccount));
-				}
-				
-				//termDepositDetailDao.insert(termDepositDetail);
-				SendUtil.sendPostRequest(restTemplate, pathConfig.getTermdeposit_detail_insert(), JSON.toJSONString(termDepositDetail));
-				AvailableNumberUtil.availableTDNumberIncrease(restTemplate, SysConstant.NEXT_AVAILABLE_TDNUMBER, pathConfig);
-				
-				// write Log
-				String logstr = "Transaction Accepted TDNumber:" + tdNumber + " Account Number:" + tdm.getTdAccountNumber();
-				LogUtil.saveLog(restTemplate, SysConstant.OPERATION_CREATE, SysConstant.LOCAL_SERVICE_NAME,
-						SysConstant.OPERATION_SUCCESS, logstr, pathConfig);
-				
-				// debit account transaction log信息
-				InsertTransactionLogModel depositAccount = new InsertTransactionLogModel();
-				depositAccount.setAccountnumber(resavaccount.getAccountnumber());
-				depositAccount.setBranchcode(header.getBranchCode());
-				depositAccount.setCcy(retdaccount.getCurrencycode());
-				depositAccount.setChannel(SysConstant.CHANNEL_TYPE);
-				depositAccount.setChannelid(header.getUserID());
-				depositAccount.setClearingcode(header.getClearingCode());
-				depositAccount.setCountrycode(header.getCountryCode());
-				depositAccount.setCrdrmaintind(SysConstant.CR_DR_MAINT_IND_TYPE1);
-				depositAccount.setPreviousbalamt(resavaccount.getLedgebalance());
-				depositAccount.setRefaccountnumber(tdm.getTdAccountNumber());
-				depositAccount.setTranamt(tdm.getTdAmount());
-				depositAccount.setSandboxid(header.getSandBoxId());
-				depositAccount.setDockerid(header.getDockerId());
-				depositAccount.setTrandesc("Term Deposit Application");
-				depositAccount.setTrantype(SysConstant.TRANSACTION_TYPE6);
-				if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
-					depositAccount.setActualbalamt(savaccount.getLedgebalance());
-				}
-				if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
-					depositAccount.setActualbalamt(currentaccount.getLedgebalance());
-				}
-				result = transactionLogService.insertTransacitonLog(restTemplate, depositAccount, header);
-				String transeq = result.getCode();
-				// td account transaction log 信息
-				
-				InsertTransactionLogModel tdApplication = getTermDepositApplication(header, tdm, retdaccount, transeq, resavaccount);
-				result = transactionLogService.insertTransacitonLog(restTemplate, tdApplication, header);
-				
-				// 给转出账户更新对方账户流水号
-				TransactionLogModel transactionLogEntity = new TransactionLogModel();
-				transactionLogEntity.setTranseq(transeq);
-				ResultUtil rest = SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_findOne(), JSON.toJSONString(transactionLogEntity));
-				TransactionLogModel transferOutUpdate = JSONObject.parseObject(
-						JsonProcess.changeEntityTOJSON(rest.getData()), TransactionLogModel.class);
-				
-				transactionLogEntity.setId(transferOutUpdate.getId());
-				transactionLogEntity.setTfrseqno(transeq);
-				SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_update(), JSON.toJSONString(transactionLogEntity));
-				
-				result = ResponseUtil.success(1, tdNumber, logstr);
 			}
 		}
 		
@@ -292,6 +204,126 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	    SendLogUtil.sendDebug(new Date().getTime() +"|" + threadId + "|" + classname + "|" + method  +  "| method end result: " + resultString);
 		
 	    return result;
+	}
+
+	private DepositAmountRangeModel getRangeAmount(List<DepositAmountRangeModel> reMax) {
+		DepositAmountRangeModel depositAmountRangeModel = null;
+		if(reMax != null && reMax.size() >= 0){
+			for(int i=0; i<reMax.size(); i++){
+				if(reMax.get(i).getCcytype() != null && reMax.get(i).getAmountrangemax() == null){
+					depositAmountRangeModel = new DepositAmountRangeModel();
+					depositAmountRangeModel = reMax.get(i);
+					break;
+				}
+			}
+		}
+		return depositAmountRangeModel;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private String getTransactionSequence(SavingAccountMasterModel resavaccount, HeaderModel header,
+			TermDepositForMasterModel retdaccount, TermDepositMasterModel tdm,
+			CurrentAccountMasterModel currentaccount, String accountType, SavingAccountMasterModel savaccount) throws Exception {
+		// debit account transaction log信息
+		InsertTransactionLogModel depositAccount = new InsertTransactionLogModel();
+		depositAccount.setAccountnumber(resavaccount.getAccountnumber());
+		depositAccount.setBranchcode(header.getBranchCode());
+		depositAccount.setCcy(retdaccount.getCurrencycode());
+		depositAccount.setChannel(SysConstant.CHANNEL_TYPE);
+		depositAccount.setChannelid(header.getUserID());
+		depositAccount.setClearingcode(header.getClearingCode());
+		depositAccount.setCountrycode(header.getCountryCode());
+		depositAccount.setCrdrmaintind(SysConstant.CR_DR_MAINT_IND_TYPE1);
+		depositAccount.setPreviousbalamt(resavaccount.getLedgebalance());
+		depositAccount.setRefaccountnumber(tdm.getTdAccountNumber());
+		depositAccount.setTranamt(tdm.getTdAmount());
+		depositAccount.setSandboxid(header.getSandBoxId());
+		depositAccount.setDockerid(header.getDockerId());
+		depositAccount.setTrandesc("Term Deposit Application");
+		depositAccount.setTrantype(SysConstant.ACCOUNT_STATE_AVAILABLE);
+		if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
+			depositAccount.setActualbalamt(savaccount.getLedgebalance());
+		}
+		if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
+			depositAccount.setActualbalamt(currentaccount.getLedgebalance());
+		}
+		ResultUtil insertTransacitonLog = transactionLogService.insertTransacitonLog(restTemplate, depositAccount, header);
+		String transeq = insertTransacitonLog.getCode();
+		
+		return transeq;
+	}
+
+	private void calculateMaturityDate(RestTemplate restTemplate2, PathConfig pathConfig2, HeaderModel header,
+			TermDepositMasterModel tdm, SavingAccountMasterModel resavaccount, SavingAccountMasterModel savaccount, CurrentAccountMasterModel currentaccount, String accountType, String tdNumber, TermDepositRateModel rerate) throws Exception {
+		SysConfigModel sysConfigModel = new SysConfigModel();
+		sysConfigModel.setItem("SystemDate");
+		Long maturitydate = null;
+		String redate = SendUtil.sendPostForSysParameters(restTemplate, pathConfig.getSysadmin_sysconfig_findOne(), sysConfigModel.toString());
+		maturitydate = CalculateMaturityDateUtil.CalculateTermDepositDays(redate, tdm.getTdContractPeriod());
+		//判断到期日是否是法定节假日(需要将UTC时间转为中国东八区时间)
+		HolidayModel model = new HolidayModel();
+		model.setDay(UTCUtil.convertToTwo(String.valueOf(maturitydate)).replace("-", ""));
+		
+		HolidayModel findHoliday = SendUtil.sendPostRequestStr(restTemplate, pathConfig.getSysadmin_holiday_findOne(), JSON.toJSONString(model), HolidayModel.class);
+		
+		if(findHoliday != null){
+			//到期日如果是法定节假日,将到期日往后顺延到下一个工作日
+			boolean temp_flag = true;
+			int temp_day = 0;
+			do{
+				temp_day++;
+				Long l1 = CalculateMaturityDateUtil.plusDay(temp_day, String.valueOf(maturitydate));
+				String temp_date = UTCUtil.convertToTwo(String.valueOf(l1));
+				String formatDateStr = temp_date.replace("-", "");
+				HolidayModel holidayModel = new HolidayModel();
+				holidayModel.setDay(formatDateStr);
+				
+				HolidayModel holiday = SendUtil.sendPostRequestStr(restTemplate, pathConfig.getSysadmin_holiday_findOne(), JSON.toJSONString(model), HolidayModel.class);
+				
+				if(holiday != null){
+					temp_flag = true;
+				}else{
+					//temp = temp_date;
+					maturitydate = CalculateMaturityDateUtil.plusDay(temp_day, String.valueOf(maturitydate));
+					temp_flag = false;
+				}
+			}while(temp_flag);
+		}
+		// TermDepositDetail add
+		TermDepositDetailPreModel termDepositDetail = new TermDepositDetailPreModel();
+		termDepositDetail.setAccountnumber(tdm.getTdAccountNumber());
+		termDepositDetail.setDepositamount(tdm.getTdAmount());
+		termDepositDetail.setDepositnumber(tdNumber);
+		termDepositDetail.setSandboxid(header.getSandBoxId());
+		termDepositDetail.setDockerid(header.getDockerId());
+		termDepositDetail.setId(UUIDUtil.generateUUID());
+		termDepositDetail.setMaturitydate(new BigDecimal(maturitydate));
+		termDepositDetail.setMaturitystatus(SysConstant.MATURITY_STATUS_A);
+		termDepositDetail.setTerminterestrate(rerate.getTdinterestrate());
+		termDepositDetail.setTermperiod(tdm.getTdContractPeriod());
+		termDepositDetail.setCreatedate(new BigDecimal(UTCUtil.getUTCTime()));
+		termDepositDetail.setSystemdate(new BigDecimal(GetSysDateUtil.getSystemDate(restTemplate, pathConfig)));
+		
+		if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
+			savaccount.setAccountnumber(resavaccount.getAccountnumber());
+			savaccount.setAvailablebalance(resavaccount.getAvailablebalance().subtract(tdm.getTdAmount()));
+			savaccount.setLedgebalance(resavaccount.getLedgebalance().subtract(tdm.getTdAmount()));
+			
+			//int i = savingAccountMasterDao.withdrawal(savaccount);
+			SendUtil.sendPostRequest(restTemplate, pathConfig.getAccount_saving_withdrawal(), JSON.toJSONString(savaccount));
+		}
+		if (accountType.equals(SysConstant.ACCOUNT_TYPE_CURRENT)) {
+			currentaccount.setAccountnumber(resavaccount.getAccountnumber());
+			currentaccount.setAvailablebalance(resavaccount.getAvailablebalance().subtract(tdm.getTdAmount()));
+			currentaccount.setLedgebalance(resavaccount.getLedgebalance().subtract(tdm.getTdAmount()));
+			//int i = currentAccountMasterDao.withdrawal(currentaccount);
+			SendUtil.sendPostRequest(restTemplate, pathConfig.getAccount_current_withdrawal(), JSON.toJSONString(currentaccount));
+		}
+		
+		//termDepositDetailDao.insert(termDepositDetail);
+		SendUtil.sendPostRequest(restTemplate, pathConfig.getTermdeposit_detail_insert(), JSON.toJSONString(termDepositDetail));
+		AvailableNumberUtil.availableTDNumberIncrease(restTemplate, SysConstant.NEXT_AVAILABLE_TDNUMBER, pathConfig);
+		
 	}
 
 	private InsertTransactionLogModel getTermDepositApplication(HeaderModel header, TermDepositMasterModel tdm,
@@ -311,7 +343,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		tdApplication.setSandboxid(header.getSandBoxId());
 		tdApplication.setDockerid(header.getDockerId());
 		tdApplication.setTrandesc("Term Deposit Application");
-		tdApplication.setTrantype(SysConstant.TRANSACITON_TYPE1);
+		tdApplication.setTrantype(SysConstant.TRANSACITON_TYPE_TERM_DEPOSIT);
 		
 		return tdApplication;
 	}
@@ -348,7 +380,6 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil termDepositDrawDown(HeaderModel header, TermDepositDrawDownModel tddm,RestTemplate restTemplate) throws Exception {
 		ResultUtil result = null;
 		String method = "termDepositDrawDown";
@@ -403,7 +434,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 			// check save account
 			if (resavaccount == null) {
 				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE404007, localeMessage.getMessage(ExceptionConstant.DEBIT_ACCOUNT_NUMBER_NOT_FOUND));
-			}else if (!resavaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE2)){
+			}else if (!resavaccount.getAccountstatus().equals(SysConstant.ACCOUNT_STATE_AVAILABLE)){
 				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
 			}else if (retddetail.getMaturitystatus().equals(SysConstant.MATURITY_STATUS_D)) {
 				result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202010, localeMessage.getMessage(ExceptionConstant.TD_RECORD_HAS_BEEN_DRAWN_DOWN));
@@ -463,7 +494,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 				depositAccount.setSandboxid(header.getSandBoxId());
 				depositAccount.setDockerid(header.getDockerId());
 				depositAccount.setTrandesc("Term Deposit Draw Down");
-				depositAccount.setTrantype(SysConstant.TRANSACTION_TYPE4);
+				depositAccount.setTrantype(SysConstant.TRANSACTION_TYPE_DEPOSIT);
 				if (accountType.equals(SysConstant.ACCOUNT_TYPE_SAVING)) {
 					depositAccount.setActualbalamt(savaccount.getLedgebalance());
 				}
@@ -489,7 +520,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 				tdApplication.setSandboxid(header.getSandBoxId());
 				tdApplication.setDockerid(header.getDockerId());
 				tdApplication.setTrandesc("Term Deposit Draw Down");
-				tdApplication.setTrantype(SysConstant.TRANSACTION_TYPE2);
+				tdApplication.setTrantype(SysConstant.TRANSACTION_TYPE_TERM_WITHDRAWAL);
 				result = transactionLogService.insertTransacitonLog(restTemplate, tdApplication, header);
 				
 				// 给转出账户更新对方账户流水号
@@ -503,7 +534,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 				transactionLogEntity.setTfrseqno(transeq);
 				SendUtil.sendPostRequest(restTemplate, pathConfig.getTransaction_log_update(), JSON.toJSONString(transactionLogEntity));
 				
-				result = ResponseUtil.success(ReturnConstant.RETURN_CODE_1, ReturnConstant.TRANSACTION_ACCEPTED);
+				result = ResponseUtil.success(ReturnConstant.RETURN_CODE_200, ReturnConstant.TRANSACTION_ACCEPTED);
 			}
 		}
 
@@ -531,7 +562,6 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	@TxTransaction(isStart = true)
-	@Transactional
 	public ResultUtil termDepositRenewal(HeaderModel header, TermDepositRenewalModel tdrm) throws Exception {
 		ResultUtil result = null;
 		String method = "termDepositRenewal";
@@ -551,7 +581,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		
 		if (tdInfo == null) { 
 			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE404006, localeMessage.getMessage(ExceptionConstant.TD_ACCOUNT_NUMBER_NOT_FOUND));
-		}else if(!tdInfo.getAccountstatus().equals(SysConstant.ACCOUNT_STATE2)){
+		}else if(!tdInfo.getAccountstatus().equals(SysConstant.ACCOUNT_STATE_AVAILABLE)){
 			// check td account status
 			result = ResponseUtil.fail(ExceptionConstant.ERROR_CODE202001, localeMessage.getMessage(ExceptionConstant.ACCOUNT_NOT_ACTIVE));
 		}else{
@@ -615,7 +645,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 						// save log to DB
 						String tdCurrencyCode = tdInfo.getCurrencycode();
 						saveLog(header, tdrm, depositAmount, tdCurrencyCode);
-						result = ResponseUtil.success(ReturnConstant.RETURN_CODE_0, ReturnConstant.TRANSACTION_ACCEPTED);
+						result = ResponseUtil.success(ReturnConstant.RETURN_CODE_200, ReturnConstant.TRANSACTION_ACCEPTED);
 					}
 				}
 			}
@@ -647,7 +677,7 @@ public class TermDepositMasterServiceImpl implements TermDepositMasterService {
 		tdRenewal.setTrandesc("Term Deposit Draw Down");
 		tdRenewal.setSandboxid(header.getSandBoxId());
 		tdRenewal.setDockerid(header.getDockerId());
-		tdRenewal.setTrantype(SysConstant.TRANSACTION_TYPE3);
+		tdRenewal.setTrantype(SysConstant.TRANSACTION_TYPE_TERM_ADAPTATION);
 		transactionLogService.insertTransacitonLog(restTemplate, tdRenewal, header);
 	}
 

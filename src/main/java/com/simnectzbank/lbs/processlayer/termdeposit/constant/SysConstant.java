@@ -12,26 +12,16 @@ public class SysConstant {
 	public static final String CUSTOMERMAPP2 = "S";// Self Owned
 
 	// 交易类型
-	public static final String TRANSACITON_TYPE1 = "0001";
-	public static final String TRANSACTION_TYPE2 = "0002";
-	public static final String TRANSACTION_TYPE3 = "0003";
-	public static final String TRANSACTION_TYPE4 = "0004";
-	public static final String TRANSACTION_TYPE5 = "0005";
-	public static final String TRANSACTION_TYPE6 = "0006";
-	static Map<String, Object> map = new HashMap<String, Object>();
-	static {
-		map.put(TRANSACITON_TYPE1, "定期存款");
-		map.put(TRANSACTION_TYPE2, "定期取款");
-		map.put(TRANSACTION_TYPE3, "定期续存");
-		map.put(TRANSACTION_TYPE4, "存入");
-		map.put(TRANSACTION_TYPE5, "转账");
-		map.put(TRANSACTION_TYPE6, "取款");
-	}
+	public static final String TRANSACTION_TYPE_TERM_WITHDRAWAL = "0002";
+	public static final String TRANSACTION_TYPE_WITHDRAWAL = "0006";
+	public static final String TRANSACITON_TYPE_TERM_DEPOSIT = "0001";
+	public static final String TRANSACTION_TYPE_TERM_ADAPTATION = "0003";//adaptation
+	public static final String TRANSACTION_TYPE_DEPOSIT = "0004";
 
 	// 账号状态
 	public static final String ACCOUNT_STATE1 = "D";// closed
-	public static final String ACCOUNT_STATE2 = "A";// account normal
-	public static final String ACCOUNT_STATE3 = "C";// has closed
+	public static final String ACCOUNT_STATE_AVAILABLE = "A";// account normal
+	public static final String ACCOUNT_STATE_CLOSED = "C";// has closed
 
 	public static final String NEXT_AVAILABLE_TDNUMBER = "NextAvailableTDNumber";
 	public static final String TIME_FORMAT_NORMAL = "yyyy-MM-dd HH:mm:ss";
